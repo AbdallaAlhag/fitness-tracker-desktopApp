@@ -7,3 +7,14 @@ const func = async () => {
 };
 
 func();
+
+// grabs steps
+const stepsDiv = document.getElementById("steps");
+
+window.fitbitAPI.getDailySteps().then((steps) => {
+  if (steps !== null) {
+    stepsDiv.innerText = `Today's Steps: ${steps}`;
+  } else {
+    stepsDiv.innerText = "Failed to load steps.";
+  }
+});
