@@ -8,5 +8,5 @@ contextBridge.exposeInMainWorld("versions", {
 });
 
 contextBridge.exposeInMainWorld("fitbitAPI", {
-  getDailySteps: () => ipcRenderer.invoke("get-daily-steps"),
+  getDailyActivity: () => ipcRenderer.invoke("get-daily-activity"),
 });

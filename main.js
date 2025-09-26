@@ -9,7 +9,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 // const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
-console.log(CLIENT_ID, REDIRECT_URI);
+// console.log(CLIENT_ID, REDIRECT_URI);
 
 const createWindow = async () => {
   const win = new BrowserWindow({
@@ -32,10 +32,8 @@ const createWindow = async () => {
 
 const handleTokens = async () => {
   let tokens = loadTokens();
-  console.log(tokens);
   if (
     tokens !== null &&
-    tokens.success !== undefined &&
     Date.now() > tokens.acquired_at + tokens.expires_in * 1000
   ) {
     tokens = await refreshAccessToken(tokens.refresh_token, CLIENT_ID);
@@ -62,11 +60,10 @@ app.whenReady().then(() => {
   });
 });
 
-ipcMain.handle("get-daily-steps", async () => {
+ipcMain.handle("get-daily-activity", async () => {
   try {
     const tokens = loadTokens(); // your token management from earlier
     const accessToken = tokens.access_token;
-
     const today = new Date().toISOString().split("T")[0]; // e.g. "2025-09-25"
 
     const res = await fetch(
@@ -77,11 +74,10 @@ ipcMain.handle("get-daily-steps", async () => {
         },
       },
     );
-
     if (!res.ok) throw new Error("Failed to fetch Fitbit data");
 
     const data = await res.json();
-    console.log(data);
+    return data;
     const steps = data.summary.steps; // daily steps
     return steps;
   } catch (err) {
@@ -89,7 +85,6 @@ ipcMain.handle("get-daily-steps", async () => {
     return null;
   }
 });
-
 // --- Get Fitbit Authorization.
 
 // Generate random verifier
@@ -136,7 +131,6 @@ async function startFitbitAuth() {
       event.preventDefault();
 
       const code = new URL(url).searchParams.get("code");
-      console.log("Got auth code:", code);
       authWin.close();
 
       // Exchange code for tokens
@@ -148,7 +142,6 @@ async function startFitbitAuth() {
       );
       tokens.acquired_at = Date.now();
       saveTokens(tokens);
-      console.log("Tokens:", tokens);
     }
   });
 }
