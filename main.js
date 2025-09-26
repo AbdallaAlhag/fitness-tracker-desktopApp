@@ -78,15 +78,84 @@ ipcMain.handle("get-daily-activity", async () => {
 
     const data = await res.json();
     return data;
-    const steps = data.summary.steps; // daily steps
-    return steps;
   } catch (err) {
     console.error(err);
     return null;
   }
 });
-// --- Get Fitbit Authorization.
 
+async function fetchFitbitResource(resource, startDate, endDate, accessToken) {
+  const res = await fetch(
+    `https://api.fitbit.com/1/user/-/activities/${resource}/date/${startDate}/${endDate}.json`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error(`Fitbit API error ${res.status}: ${resource}`);
+  }
+
+  return res.json();
+}
+ipcMain.handle("get-weekly-activity", async () => {
+  const tokens = loadTokens(); // your token management from earlier
+  const accessToken = tokens.access_token;
+  const today = new Date().toISOString().split("T")[0]; // e.g. "2025-09-25"
+  const { monday: startDate, sunday: endDate } = getWeekRange(today);
+
+  console.log(startDate, endDate);
+  const resources = [
+    "activityCalories",
+    "calories",
+    "caloriesBMR",
+    "steps",
+    "distance",
+  ];
+
+  // fetch all in parallel
+  const results = await Promise.all(
+    resources.map((r) =>
+      fetchFitbitResource(r, startDate, endDate, accessToken),
+    ),
+  );
+
+  // combine into one object
+  const combined = {};
+  resources.forEach((r, i) => {
+    combined[r] = results[i];
+  });
+
+  return combined;
+});
+
+function getWeekRange(date = new Date()) {
+  // clone date so we don’t mutate the original
+  const d = new Date(date);
+
+  // get the day index (0=Sunday, 1=Monday, ..., 6=Saturday)
+  const day = d.getDay();
+
+  // calculate Monday (if Sunday, day=0 → go back 6 days)
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const monday = new Date(d);
+  monday.setDate(d.getDate() + diffToMonday);
+
+  // calculate Sunday (Monday + 6 days)
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  // format as yyyy-mm-dd
+  const fmt = (x) => x.toISOString().split("T")[0];
+
+  return {
+    monday: fmt(monday),
+    sunday: fmt(sunday),
+  };
+}
+// --- Get Fitbit Authorization.
 // Generate random verifier
 function generateCodeVerifier() {
   return crypto.randomBytes(32).toString("base64url"); // Node 15+

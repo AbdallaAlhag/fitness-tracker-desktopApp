@@ -34,3 +34,7 @@ window.fitbitAPI.getDailyActivity().then((data) => {
     bmrDiv.innerText = "Failed to load BMR.";
   }
 });
+
+window.fitbitAPI.getWeeklyActivity().then((data) => {
+  console.log(data);
+});
