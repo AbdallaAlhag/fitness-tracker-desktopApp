@@ -5,11 +5,19 @@ require("dotenv").config();
 const crypto = require("crypto");
 const fs = require("fs");
 
-const CLIENT_ID = process.env.CLIENT_ID;
+const FITBIT_CLIENT_ID = process.env.FITBIT_CLIENT_ID;
 // const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI;
+const FITBIT_REDIRECT_URI = process.env.FITBIT_REDIRECT_URI;
 
-// console.log(CLIENT_ID, REDIRECT_URI);
+const STRAVA = {
+  clientId: process.env.STRAVA_CLIENT_ID,
+  clientSecret: process.env.STRAVA_CLIENT_SECRET,
+  redirectUri: process.env.STRAVA_REDIRECT_URI,
+  authUrl: "https://www.strava.com/oauth/authorize",
+  tokenUrl: "https://www.strava.com/oauth/token",
+  scope: "read,activity:read_all",
+};
+// console.log(FITBIT_CLIENT_ID, FITBIT_REDIRECT_URI);
 
 const createWindow = async () => {
   const win = new BrowserWindow({
@@ -31,18 +39,25 @@ const createWindow = async () => {
 };
 
 const handleTokens = async () => {
-  let tokens = loadTokens();
+  let fitbit_tokens = loadTokens("fitbit_tokens.json");
   if (
-    tokens !== null &&
-    Date.now() > tokens.acquired_at + tokens.expires_in * 1000
+    fitbit_tokens !== null &&
+    Date.now() > fitbit_tokens.acquired_at + fitbit_tokens.expires_in * 1000
   ) {
-    tokens = await refreshAccessToken(tokens.refresh_token, CLIENT_ID);
-    tokens.acquired_at = Date.now();
-    saveTokens(tokens);
+    fitbit_tokens = await refreshAccessToken(
+      fitbit_tokens.refresh_token,
+      FITBIT_CLIENT_ID,
+    );
+    fitbit_tokens.acquired_at = Date.now();
+    saveTokens("fitbit_tokens.json", fitbit_tokens);
     console.log("Token successfully refreshed");
-  } else if (tokens === null || tokens.success === false) {
+  } else if (fitbit_tokens === null || fitbit_tokens.success === false) {
     await startFitbitAuth();
     console.log("Started Fitbit auth flow");
+  }
+  let strava_tokens = loadTokens("strava_tokens.json");
+  if (strava_tokens == null) {
+    await startStravaAuth();
   }
 };
 app.whenReady().then(() => {
@@ -62,7 +77,7 @@ app.whenReady().then(() => {
 
 ipcMain.handle("get-daily-activity", async () => {
   try {
-    const tokens = loadTokens(); // your token management from earlier
+    const tokens = loadTokens("fitbit_tokens.json"); // your token management from earlier
     const accessToken = tokens.access_token;
     const today = new Date().toISOString().split("T")[0]; // e.g. "2025-09-25"
 
@@ -101,7 +116,7 @@ async function fetchFitbitResource(resource, startDate, endDate, accessToken) {
   return res.json();
 }
 ipcMain.handle("get-weekly-activity", async () => {
-  const tokens = loadTokens(); // your token management from earlier
+  const tokens = loadTokens("fitbit_tokens.json"); // your token management from earlier
   const accessToken = tokens.access_token;
   const today = new Date().toISOString().split("T")[0]; // e.g. "2025-09-25"
   const { monday: startDate, sunday: endDate } = getWeekRange(today);
@@ -173,17 +188,17 @@ async function startFitbitAuth() {
   // what we want to grab from Fitbit
   // const scope = "activity profile";
 
-  // const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}
-  //                 &redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(scope)}
+  // const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${FITBIT_CLIENT_ID}
+  //                 &redirect_uri=${encodeURIComponent(FITBIT_REDIRECT_URI)}&scope=${encodeURIComponent(scope)}
   //                 &code_challenge=${challenge}&code_challenge_method=S256`;
 
-  // const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${CLIENT_ID}
-  //                 &redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=activity%20heartrate&expires_in=604800
+  // const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${FITBIT_CLIENT_ID}
+  //                 &redirect_uri=${encodeURIComponent(FITBIT_REDIRECT_URI)}&scope=activity%20heartrate&expires_in=604800
   //                   &code_challenge=${challenge}&code_challenge_method=S256`;
   const params = new URLSearchParams({
     response_type: "code",
-    client_id: CLIENT_ID,
-    redirect_uri: REDIRECT_URI,
+    client_id: FITBIT_CLIENT_ID,
+    redirect_uri: FITBIT_REDIRECT_URI,
     scope: "activity heartrate",
     expires_in: "604800",
     code_challenge: challenge,
@@ -196,7 +211,7 @@ async function startFitbitAuth() {
 
   // Catch redirect
   authWin.webContents.on("will-redirect", async (event, url) => {
-    if (url.startsWith(REDIRECT_URI)) {
+    if (url.startsWith(FITBIT_REDIRECT_URI)) {
       event.preventDefault();
 
       const code = new URL(url).searchParams.get("code");
@@ -206,11 +221,11 @@ async function startFitbitAuth() {
       const tokens = await exchangeCodeForToken(
         code,
         verifier,
-        CLIENT_ID,
-        REDIRECT_URI,
+        FITBIT_CLIENT_ID,
+        FITBIT_REDIRECT_URI,
       );
       tokens.acquired_at = Date.now();
-      saveTokens(tokens);
+      saveTokens("fitbit_tokens.json", tokens);
     }
   });
 }
@@ -250,11 +265,50 @@ async function refreshAccessToken(refreshToken, clientId) {
   }
   return data; // contains new access_token, refresh_token, expires_in
 }
-function saveTokens(tokens) {
-  fs.writeFileSync("tokens.json", JSON.stringify(tokens, null, 2));
+function saveTokens(fileName, tokens) {
+  fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
 }
 
-function loadTokens() {
-  if (!fs.existsSync("tokens.json")) return null;
-  return JSON.parse(fs.readFileSync("tokens.json"));
+function loadTokens(fileName) {
+  if (!fs.existsSync(fileName)) return null;
+  return JSON.parse(fs.readFileSync(fileName));
+}
+
+async function startStravaAuth() {
+  const authWindow = new BrowserWindow({
+    width: 600,
+    height: 800,
+    webPreferences: { nodeIntegration: false },
+  });
+
+  const authUrl = `${STRAVA.authUrl}?client_id=${STRAVA.clientId}&response_type=code&redirect_uri=${STRAVA.redirectUri}&scope=${STRAVA.scope}&approval_prompt=force`;
+  authWindow.loadURL(authUrl);
+
+  authWindow.webContents.on("will-redirect", async (event, url) => {
+    if (url.startsWith(STRAVA.redirectUri)) {
+      event.preventDefault();
+
+      const codeMatch = url.match(/code=([\w\d]+)/);
+      if (codeMatch) {
+        const code = codeMatch[1];
+
+        const res = await fetch(STRAVA.tokenUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            client_id: STRAVA.clientId,
+            client_secret: STRAVA.clientSecret,
+            code,
+            grant_type: "authorization_code",
+          }),
+        });
+        const tokens = await res.json();
+        tokens.acquired_at = Date.now();
+
+        fs.writeFileSync("strava_tokens.json", JSON.stringify(tokens, null, 2));
+        console.log("tokens saved");
+        authWindow.close();
+      }
+    }
+  });
 }
