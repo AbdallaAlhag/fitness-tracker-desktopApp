@@ -17,7 +17,6 @@ const STRAVA = {
   tokenUrl: "https://www.strava.com/oauth/token",
   scope: "read,activity:read_all",
 };
-// console.log(FITBIT_CLIENT_ID, FITBIT_REDIRECT_URI);
 
 const createWindow = async () => {
   const win = new BrowserWindow({
@@ -32,16 +31,19 @@ const createWindow = async () => {
 
   try {
     await handleTokens();
-    console.log("Ready to make Fitbit API calls with access_token");
   } catch (err) {
     console.error("Error during Fitbit auth:", err);
   }
 };
 
+// Both start up at the same time
+// will result in errors until logged in since auth is async,
+// loadtokens runs alongside our renderer.js methods calling get daily and get weekly
 const handleTokens = async () => {
+  // Fitbit Auth and Refresh check.
   let fitbit_tokens = loadTokens("fitbit_tokens.json");
   if (
-    fitbit_tokens !== null &&
+    !fitbit_tokens &&
     Date.now() > fitbit_tokens.acquired_at + fitbit_tokens.expires_in * 1000
   ) {
     fitbit_tokens = await refreshAccessToken(
@@ -50,16 +52,25 @@ const handleTokens = async () => {
     );
     fitbit_tokens.acquired_at = Date.now();
     saveTokens("fitbit_tokens.json", fitbit_tokens);
-    console.log("Token successfully refreshed");
   } else if (fitbit_tokens === null || fitbit_tokens.success === false) {
     await startFitbitAuth();
-    console.log("Started Fitbit auth flow");
   }
+
+  // Strava Auth and Refresh check
   let strava_tokens = loadTokens("strava_tokens.json");
-  if (strava_tokens == null) {
+  const now = Math.floor(Date.now() / 1000);
+  if (!strava_tokens) {
+    // No tokens at all → start auth flow
     await startStravaAuth();
   }
+
+  if (strava_tokens && now >= strava_tokens.expires_at) {
+    // We have tokens, but access token expired → refresh
+    strava_tokens = await refreshStravaToken();
+    saveTokens("strava_tokens.json", strava_tokens);
+  }
 };
+
 app.whenReady().then(() => {
   ipcMain.handle("ping", () => "pong");
   createWindow();
@@ -75,7 +86,7 @@ app.whenReady().then(() => {
   });
 });
 
-ipcMain.handle("get-daily-activity", async () => {
+ipcMain.handle("fitbit-get-daily-activity", async () => {
   try {
     const tokens = loadTokens("fitbit_tokens.json"); // your token management from earlier
     const accessToken = tokens.access_token;
@@ -115,13 +126,12 @@ async function fetchFitbitResource(resource, startDate, endDate, accessToken) {
 
   return res.json();
 }
-ipcMain.handle("get-weekly-activity", async () => {
+ipcMain.handle("fitbit-get-weekly-activity", async () => {
   const tokens = loadTokens("fitbit_tokens.json"); // your token management from earlier
   const accessToken = tokens.access_token;
   const today = new Date().toISOString().split("T")[0]; // e.g. "2025-09-25"
   const { monday: startDate, sunday: endDate } = getWeekRange(today);
 
-  console.log(startDate, endDate);
   const resources = [
     "activityCalories",
     "calories",
@@ -306,9 +316,85 @@ async function startStravaAuth() {
         tokens.acquired_at = Date.now();
 
         fs.writeFileSync("strava_tokens.json", JSON.stringify(tokens, null, 2));
-        console.log("tokens saved");
         authWindow.close();
       }
     }
   });
+}
+
+ipcMain.handle("strava-get-daily-activity", async () => {
+  const tokens = loadTokens("strava_tokens.json"); // your token management from earlier
+  const accessToken = tokens.access_token;
+
+  /// Gives us daily timer period, don't use at the moment.
+  // // Get today’s midnight (local)
+  // const startOfDay = new Date();
+  // startOfDay.setHours(0, 0, 0, 0);
+  //
+  // // Get tomorrow’s midnight (local)
+  // const endOfDay = new Date(startOfDay);
+  // endOfDay.setDate(endOfDay.getDate() + 1);
+  //
+  // // Convert to epoch seconds
+  // const after = Math.floor(startOfDay.getTime() / 1000);
+  // const before = Math.floor(endOfDay.getTime() / 1000);
+  // Today’s midnight (local)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // Epoch seconds for "before" → now (end of today)
+  const before = Math.floor(Date.now() / 1000);
+
+  // Epoch seconds for "after" → 7 days ago
+  const sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const after = Math.floor(sevenDaysAgo.getTime() / 1000);
+
+  // Page and per_page parameters
+  const page = 1;
+  const perPage = 30;
+
+  // Construct the URL with query params
+  const url = new URL("https://www.strava.com/api/v3/athlete/activities");
+  url.search = new URLSearchParams({
+    before,
+    after,
+    page,
+    per_page: perPage,
+  });
+
+  try {
+    const response = await fetch(url.toString(), {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching Strava activities:", error);
+  }
+});
+
+async function refreshStravaToken() {
+  const tokens = loadTokens("strava_tokens.json"); // your token management from earlier
+  const refreshToken = tokens.refresh_token;
+
+  const params = new URLSearchParams({
+    client_id: STRAVA.clientId,
+    client_secret: STRAVA.clientSecret,
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+  });
+  const res = await fetch("https://www.strava.com/oauth/token", {
+    method: "POST",
+    body: params,
+  });
+  const newTokens = await res.json();
+  return newTokens;
 }

@@ -8,6 +8,11 @@ contextBridge.exposeInMainWorld("versions", {
 });
 
 contextBridge.exposeInMainWorld("fitbitAPI", {
-  getDailyActivity: () => ipcRenderer.invoke("get-daily-activity"),
-  getWeeklyActivity: () => ipcRenderer.invoke("get-weekly-activity"),
+  getFitbitDailyActivity: () => ipcRenderer.invoke("fitbit-get-daily-activity"),
+  getFitbitWeeklyActivity: () =>
+    ipcRenderer.invoke("fitbit-get-weekly-activity"),
+});
+
+contextBridge.exposeInMainWorld("stravaAPI", {
+  getStravaDailyActivity: () => ipcRenderer.invoke("strava-get-daily-activity"),
 });
