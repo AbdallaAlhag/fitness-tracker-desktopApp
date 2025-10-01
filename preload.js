@@ -14,5 +14,9 @@ contextBridge.exposeInMainWorld("fitbitAPI", {
 });
 
 contextBridge.exposeInMainWorld("stravaAPI", {
-  getStravaDailyActivity: () => ipcRenderer.invoke("strava-get-daily-activity"),
+  getStravaActivity: () => ipcRenderer.invoke("strava-get-activity"),
+});
+
+contextBridge.exposeInMainWorld("hevyAPI", {
+  getHevyActivity: () => ipcRenderer.invoke("hevy-get-activity"),
 });

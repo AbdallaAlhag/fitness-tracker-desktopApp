@@ -1,14 +1,13 @@
 const { app, BrowserWindow, ipcMain, Menu } = require("electron");
-// import { app, BrowserWindow } from "electron";
 const path = require("node:path");
 require("dotenv").config();
 const crypto = require("crypto");
 const fs = require("fs");
-const { create } = require("node:domain");
 
 const FITBIT_CLIENT_ID = process.env.FITBIT_CLIENT_ID;
 // const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const FITBIT_REDIRECT_URI = process.env.FITBIT_REDIRECT_URI;
+const HEVY_API_KEY = process.env.HEVY_API_KEY;
 
 const STRAVA = {
   clientId: process.env.STRAVA_CLIENT_ID,
@@ -102,6 +101,26 @@ app.whenReady().then(async () => {
   });
 });
 
+ipcMain.handle("hevy-get-activity", async () => {
+  try {
+    const url = "https://api.hevyapp.com/v1/workouts?page=1&pageSize=5";
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        "api-key": HEVY_API_KEY, // <-- matches curl
+      },
+    });
+    if (!res.ok) throw new Error("Failed to fetch Hevy data");
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error(err);
+    return null;
+    // return { success: false, error: err.message };
+  }
+});
 ipcMain.handle("fitbit-get-daily-activity", async () => {
   try {
     const tokens = loadTokens("fitbit_tokens.json"); // your token management from earlier
@@ -338,7 +357,7 @@ async function startStravaAuth() {
   });
 }
 
-ipcMain.handle("strava-get-daily-activity", async () => {
+ipcMain.handle("strava-get-activity", async () => {
   const tokens = loadTokens("strava_tokens.json"); // your token management from earlier
   const accessToken = tokens.access_token;
 

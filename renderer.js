@@ -57,7 +57,7 @@ window.fitbitAPI.getFitbitWeeklyActivity().then((data) => {
 
 let stravaActivity = document.getElementById("strava-activity");
 
-window.stravaAPI.getStravaDailyActivity().then((data) => {
+window.stravaAPI.getStravaActivity().then((data) => {
   console.log(data);
   // // let activity = data.at(-1);
   // let activity = data[0];
@@ -101,12 +101,13 @@ window.stravaAPI.getStravaDailyActivity().then((data) => {
   const paceMin = Math.floor(60 / mph);
   const paceSec = Math.round((60 / mph - paceMin) * 60);
   let totalTime = formatTime(activity.moving_time);
-
+  let calories = (9.3 * 81.193 * (activity.moving_time / 3600)).toFixed(0);
   stravaActivity.innerText = `Strava Activity: ${name.toUpperCase()}
     Date: ${new Date(date).toLocaleString()}
     Distance: ${distance.toFixed(2)} mi
     Pace: ${paceMin}:${paceSec}/mi
-    Time: ${totalTime}`;
+    Time: ${totalTime}
+    Calories: ${calories}`;
 });
 
 // epoch to minutes, hours, second
@@ -116,3 +117,61 @@ function formatTime(seconds) {
   const s = seconds % 60;
   return `${h}h ${m}m ${s}s`;
 }
+
+function formatDuration(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${h}h ${m}m ${s}s`;
+}
+const hevyActivity = document.getElementById("hevy-activity");
+
+window.hevyAPI.getHevyActivity().then((data) => {
+  console.log(data);
+  let workout = data.workouts;
+
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const startOfToday = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  const startOfYesterday = new Date(
+    yesterday.getFullYear(),
+    yesterday.getMonth(),
+    yesterday.getDate(),
+  );
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday = start of week
+
+  const workoutsToday = workout.filter(
+    (w) => new Date(w.created_at) >= startOfYesterday,
+  );
+  // const workoutsThisWeek = workout.filter(
+  //   (w) => new Date(w.created_at) >= startOfWeek,
+  // );
+  if (workoutsToday.length === 0) {
+    hevyActivity.innerText = "No workout Today";
+    return;
+  }
+  for (const w of workoutsToday) {
+    const title = w.title;
+    const date = new Date(w.created_at).toLocaleString();
+    const elapsedTime = new Date(w.end_time) - new Date(w.start_time);
+    console.log(elapsedTime);
+    const durationStr = formatDuration(elapsedTime);
+    const calories = (
+      ((elapsedTime / 60000) * (4.5 * 3.5 * 81.193)) /
+      200
+    ).toFixed(0);
+    hevyActivity.innerText += `
+                              Workout: ${title}
+                              Date: ${date}
+                              Duration: ${durationStr}
+                              Calories: ${calories}
+                              `;
+  }
+});
