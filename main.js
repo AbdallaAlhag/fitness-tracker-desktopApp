@@ -1,9 +1,10 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, Menu } = require("electron");
 // import { app, BrowserWindow } from "electron";
 const path = require("node:path");
 require("dotenv").config();
 const crypto = require("crypto");
 const fs = require("fs");
+const { create } = require("node:domain");
 
 const FITBIT_CLIENT_ID = process.env.FITBIT_CLIENT_ID;
 // const CLIENT_SECRET = process.env.CLIENT_SECRET;
@@ -27,13 +28,8 @@ const createWindow = async () => {
     },
   });
   win.loadFile("index.html");
+  Menu.setApplicationMenu(null);
   win.webContents.openDevTools();
-
-  try {
-    await handleTokens();
-  } catch (err) {
-    console.error("Error during Fitbit auth:", err);
-  }
 };
 
 // Both start up at the same time
@@ -43,7 +39,7 @@ const handleTokens = async () => {
   // Fitbit Auth and Refresh check.
   let fitbit_tokens = loadTokens("fitbit_tokens.json");
   if (
-    !fitbit_tokens &&
+    !fitbit_tokens ||
     Date.now() > fitbit_tokens.acquired_at + fitbit_tokens.expires_in * 1000
   ) {
     fitbit_tokens = await refreshAccessToken(
@@ -71,10 +67,30 @@ const handleTokens = async () => {
   }
 };
 
-app.whenReady().then(() => {
-  ipcMain.handle("ping", () => "pong");
-  createWindow();
+const createSplashWindow = () => {
+  const splash = new BrowserWindow({
+    width: 400,
+    height: 200,
+    frame: false,
+    alwaysOnTop: true,
+  });
+  splash.loadFile("splash.html");
+  return splash;
+};
 
+app.whenReady().then(async () => {
+  const splash = createSplashWindow();
+
+  ipcMain.handle("ping", () => "pong");
+  try {
+    await handleTokens();
+  } catch (err) {
+    console.error("Error during auth:", err);
+    // app.quit();
+    // return;
+  }
+  await createWindow();
+  splash.close();
   // closing on window and linux
   app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit();

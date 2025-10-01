@@ -58,7 +58,7 @@ window.fitbitAPI.getFitbitWeeklyActivity().then((data) => {
 let stravaActivity = document.getElementById("strava-activity");
 
 window.stravaAPI.getStravaDailyActivity().then((data) => {
-  // console.log(data);
+  console.log(data);
   // // let activity = data.at(-1);
   // let activity = data[0];
 
@@ -69,7 +69,7 @@ window.stravaAPI.getStravaDailyActivity().then((data) => {
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1); // tomorrow midnight
 
-  const activity = data.filter((act) => {
+  let activity = data.filter((act) => {
     // Only runs
     if (act.type !== "Run") return false;
 
@@ -89,6 +89,9 @@ window.stravaAPI.getStravaDailyActivity().then((data) => {
     stravaActivity.innerText = "No data found!";
     return;
   }
+  // for now let's just set activity to be the first we can change this to a list of activities later.
+  activity = activity[0];
+  console.log(activity.sport_type);
   let date = activity.start_date;
   let name = activity.sport_type;
   // convert meters to miles
@@ -100,10 +103,10 @@ window.stravaAPI.getStravaDailyActivity().then((data) => {
   let totalTime = formatTime(activity.moving_time);
 
   stravaActivity.innerText = `Strava Activity: ${name.toUpperCase()}
-Date: ${new Date(date).toLocaleString()}
-Distance: ${distance.toFixed(2)} mi
-Pace: ${paceMin}:${paceSec}/mi
-Time: ${totalTime}`;
+    Date: ${new Date(date).toLocaleString()}
+    Distance: ${distance.toFixed(2)} mi
+    Pace: ${paceMin}:${paceSec}/mi
+    Time: ${totalTime}`;
 });
 
 // epoch to minutes, hours, second
