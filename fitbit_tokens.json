@@ -1,9 +1,9 @@
 {
-  "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1RKV1AiLCJzdWIiOiI5SldGNVgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3aHIgd2FjdCIsImV4cCI6MTc1OTM3Mjc2NywiaWF0IjoxNzU5MzQzOTY3fQ.EioWm_cSsB6ziMdjNraTN8e2DoybzGcNXp2USLYyHGA",
+  "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1RKV1AiLCJzdWIiOiI5SldGNVgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3aHIgd2FjdCIsImV4cCI6MTc1OTQ0OTAzMiwiaWF0IjoxNzU5NDIwMjMyfQ.vJRc1AEX2Y-GcPN-ttHVALFmYROO7B143mbMazOc5dQ",
   "expires_in": 28800,
-  "refresh_token": "a5608411bdaadc173f0ae0b0ebe9432d945768cf5051dfc3aa1bcde07a49e404",
+  "refresh_token": "1c248e66e5822db912e2734b63681488abe9164519f82e86f09f5b87d8aad39a",
   "scope": "heartrate activity",
   "token_type": "Bearer",
   "user_id": "9JWF5X",
-  "acquired_at": 1759343967920
+  "acquired_at": 1759420232351
 }

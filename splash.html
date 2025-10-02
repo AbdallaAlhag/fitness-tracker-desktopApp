@@ -1,6 +1,214 @@
+<!-- <!doctype html> -->
+<!-- <html> -->
+<!--   <body> -->
+<!--     <h2>Loading, please wait...</h2> -->
+<!--   </body> -->
+<!-- </html> -->
+
 <!doctype html>
-<html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Splash Screen</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: sans-serif;
+      }
+
+      .splash {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(to bottom right, #f97316, #dc2626);
+        opacity: 1;
+        transition: opacity 0.5s ease;
+      }
+
+      .splash.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .splash-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        animation: fade-in 1s ease forwards;
+      }
+
+      /* Glow Pulse */
+      .pulse-glow {
+        position: absolute;
+        inset: 0;
+        animation: pulse 2s infinite;
+      }
+
+      .pulse-glow div {
+        height: 6rem;
+        width: 6rem;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.2);
+        filter: blur(20px);
+      }
+
+      /* SVG Icon */
+      svg {
+        position: relative;
+        height: 6rem;
+        width: 6rem;
+        color: white;
+        animation: bounce-in 1s ease;
+      }
+
+      /* Text */
+      h1 {
+        font-size: 3rem;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 0.5rem;
+        animation: slide-up 1s ease forwards;
+      }
+
+      p {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.125rem;
+        animation: slide-up 1s ease forwards;
+        animation-delay: 0.2s;
+      }
+
+      /* Loading dots */
+      .dots {
+        display: flex;
+        gap: 0.5rem;
+        animation: slide-up 1s ease forwards;
+        animation-delay: 0.4s;
+      }
+
+      .dots div {
+        height: 0.5rem;
+        width: 0.5rem;
+        border-radius: 9999px;
+        background: white;
+        animation: bounce 1.2s infinite;
+      }
+
+      .dots div:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+      .dots div:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+
+      /* Animations */
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes slide-up {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes bounce-in {
+        0% {
+          transform: scale(0.3);
+          opacity: 0;
+        }
+        60% {
+          transform: scale(1.1);
+          opacity: 1;
+        }
+        80% {
+          transform: scale(0.95);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        80%,
+        100% {
+          transform: scale(0.9);
+        }
+        40% {
+          transform: scale(1.3);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.6;
+        }
+        50% {
+          transform: scale(1.2);
+          opacity: 0.3;
+        }
+      }
+    </style>
+  </head>
   <body>
-    <h2>Loading, please wait...</h2>
+    <div class="splash" id="splash">
+      <div class="splash-content">
+        <!-- Icon -->
+        <div class="relative" style="position: relative">
+          <div class="pulse-glow"><div></div></div>
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
+          </svg>
+        </div>
+
+        <!-- Title + Subtitle -->
+        <div class="text-center" style="text-align: center">
+          <h1>FitPro</h1>
+          <p>Your Fitness Journey Starts Here</p>
+        </div>
+
+        <!-- Loading dots -->
+        <div class="dots">
+          <div></div>
+          <div></div>
+          <div></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Hide splash after 2.5s + fade-out
+      setTimeout(() => {
+        const splash = document.getElementById("splash");
+        splash.classList.add("hidden");
+      }, 2500);
+    </script>
   </body>
 </html>
