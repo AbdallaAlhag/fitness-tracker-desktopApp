@@ -1,9 +1,9 @@
 {
-  "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1RKV1AiLCJzdWIiOiI5SldGNVgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3YWN0IHd3ZWkiLCJleHAiOjE3NTk0NTQ5NDgsImlhdCI6MTc1OTQyNjE0OH0.8VqA3cERUVvMKk7fQqmTV6VGnnnP8jJlXnHEYw11tOk",
+  "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1RKV1AiLCJzdWIiOiI5SldGNVgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3YWN0IHd3ZWkiLCJleHAiOjE3NTk0NTY2NDAsImlhdCI6MTc1OTQyNzg0MH0.qB97GWUR-CgJOv3c3AI87FfVrYu150RzxqgnwYCHOnI",
   "expires_in": 28800,
-  "refresh_token": "18a969b3695243c3f8659ccbad9eb2832f9a672a0612855ace74390755220845",
-  "scope": "weight activity",
+  "refresh_token": "77a7e25716308ddd647ac096261ea63d5057a52c99016b3c12eca896c488c8b3",
+  "scope": "activity weight",
   "token_type": "Bearer",
   "user_id": "9JWF5X",
-  "acquired_at": 1759426148454
+  "acquired_at": 1759427840850
 }

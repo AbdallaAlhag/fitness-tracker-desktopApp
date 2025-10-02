@@ -292,7 +292,6 @@ async function startFitbitAuth() {
         event.preventDefault();
 
         const code = new URL(url).searchParams.get("code");
-        authWin.close();
         try {
           // Exchange code for tokens
           const tokens = await exchangeCodeForToken(
@@ -303,6 +302,8 @@ async function startFitbitAuth() {
           );
           tokens.acquired_at = Date.now();
           saveTokens("fitbit_tokens.json", tokens);
+
+          authWin.close();
           resolve(tokens);
         } catch (err) {
           reject(err);
@@ -310,7 +311,9 @@ async function startFitbitAuth() {
       }
     });
     authWin.on("closed", () => {
-      reject(new Error("Auth window closed by user"));
+      if (!fs.existsSync("fitbit_tokens.json")) {
+        reject(new Error("Auth window closed by user"));
+      }
     });
   });
 }
@@ -406,7 +409,9 @@ async function startStravaAuth() {
       }
     });
     authWindow.on("closed", () => {
-      reject(new Error("Strava auth window closed by user"));
+      if (!fs.existsSync("strava_tokens.json")) {
+        reject(new Error("Strava auth window closed by user"));
+      }
     });
   });
 }
