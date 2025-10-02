@@ -38,7 +38,7 @@ const handleTokens = async () => {
   // Fitbit Auth and Refresh check.
   let fitbit_tokens = loadTokens("fitbit_tokens.json");
   if (
-    !fitbit_tokens ||
+    fitbit_tokens &&
     Date.now() > fitbit_tokens.acquired_at + fitbit_tokens.expires_in * 1000
   ) {
     fitbit_tokens = await refreshAccessToken(
@@ -47,7 +47,7 @@ const handleTokens = async () => {
     );
     fitbit_tokens.acquired_at = Date.now();
     saveTokens("fitbit_tokens.json", fitbit_tokens);
-  } else if (fitbit_tokens === null || fitbit_tokens.success === false) {
+  } else if (fitbit_tokens == null || fitbit_tokens.success === false) {
     await startFitbitAuth();
   }
 
@@ -135,8 +135,39 @@ ipcMain.handle("fitbit-get-daily-activity", async () => {
         },
       },
     );
+
     if (!res.ok) throw new Error("Failed to fetch Fitbit data");
 
+    const data = await res.json();
+    return data;
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+});
+ipcMain.handle("fitbit-get-weight", async () => {
+  try {
+    const tokens = loadTokens("fitbit_tokens.json"); // your token management from earlier
+    const accessToken = tokens.access_token;
+    const today = new Date().toISOString().split("T")[0]; // e.g. "2025-09-25"
+
+    const res = await fetch(
+      `https://api.fitbit.com/1/user/-/body/log/weight/date/${today}.json`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    // if (!res.ok) throw new Error("Failed to fetch Fitbit data");
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Fitbit API failed: ${res.status} - ${errText}`);
+    }
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Fitbit API failed: ${res.status} - ${errText}`);
+    }
     const data = await res.json();
     return data;
   } catch (err) {
@@ -227,51 +258,60 @@ function generateCodeChallenge(verifier) {
 }
 
 async function startFitbitAuth() {
-  const verifier = generateCodeVerifier();
-  const challenge = generateCodeChallenge(verifier);
+  return new Promise((resolve, reject) => {
+    const verifier = generateCodeVerifier();
+    const challenge = generateCodeChallenge(verifier);
 
-  // what we want to grab from Fitbit
-  // const scope = "activity profile";
+    // what we want to grab from Fitbit
+    // const scope = "activity profile";
 
-  // const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${FITBIT_CLIENT_ID}
-  //                 &redirect_uri=${encodeURIComponent(FITBIT_REDIRECT_URI)}&scope=${encodeURIComponent(scope)}
-  //                 &code_challenge=${challenge}&code_challenge_method=S256`;
+    // const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${FITBIT_CLIENT_ID}
+    //                 &redirect_uri=${encodeURIComponent(FITBIT_REDIRECT_URI)}&scope=${encodeURIComponent(scope)}
+    //                 &code_challenge=${challenge}&code_challenge_method=S256`;
 
-  // const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${FITBIT_CLIENT_ID}
-  //                 &redirect_uri=${encodeURIComponent(FITBIT_REDIRECT_URI)}&scope=activity%20heartrate&expires_in=604800
-  //                   &code_challenge=${challenge}&code_challenge_method=S256`;
-  const params = new URLSearchParams({
-    response_type: "code",
-    client_id: FITBIT_CLIENT_ID,
-    redirect_uri: FITBIT_REDIRECT_URI,
-    scope: "activity heartrate",
-    expires_in: "604800",
-    code_challenge: challenge,
-    code_challenge_method: "S256",
-  });
+    // const authUrl = `https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=${FITBIT_CLIENT_ID}
+    //                 &redirect_uri=${encodeURIComponent(FITBIT_REDIRECT_URI)}&scope=activity%20heartrate&expires_in=604800
+    //                   &code_challenge=${challenge}&code_challenge_method=S256`;
+    const params = new URLSearchParams({
+      response_type: "code",
+      client_id: FITBIT_CLIENT_ID,
+      redirect_uri: FITBIT_REDIRECT_URI,
+      scope: "activity weight",
+      expires_in: "604800",
+      code_challenge: challenge,
+      code_challenge_method: "S256",
+    });
 
-  const authUrl = `https://www.fitbit.com/oauth2/authorize?${params.toString()}`;
-  let authWin = new BrowserWindow({ width: 500, height: 600 });
-  authWin.loadURL(authUrl);
+    const authUrl = `https://www.fitbit.com/oauth2/authorize?${params.toString()}`;
+    let authWin = new BrowserWindow({ width: 500, height: 600 });
+    authWin.loadURL(authUrl);
 
-  // Catch redirect
-  authWin.webContents.on("will-redirect", async (event, url) => {
-    if (url.startsWith(FITBIT_REDIRECT_URI)) {
-      event.preventDefault();
+    // Catch redirect
+    authWin.webContents.on("will-redirect", async (event, url) => {
+      if (url.startsWith(FITBIT_REDIRECT_URI)) {
+        event.preventDefault();
 
-      const code = new URL(url).searchParams.get("code");
-      authWin.close();
-
-      // Exchange code for tokens
-      const tokens = await exchangeCodeForToken(
-        code,
-        verifier,
-        FITBIT_CLIENT_ID,
-        FITBIT_REDIRECT_URI,
-      );
-      tokens.acquired_at = Date.now();
-      saveTokens("fitbit_tokens.json", tokens);
-    }
+        const code = new URL(url).searchParams.get("code");
+        authWin.close();
+        try {
+          // Exchange code for tokens
+          const tokens = await exchangeCodeForToken(
+            code,
+            verifier,
+            FITBIT_CLIENT_ID,
+            FITBIT_REDIRECT_URI,
+          );
+          tokens.acquired_at = Date.now();
+          saveTokens("fitbit_tokens.json", tokens);
+          resolve(tokens);
+        } catch (err) {
+          reject(err);
+        }
+      }
+    });
+    authWin.on("closed", () => {
+      reject(new Error("Auth window closed by user"));
+    });
   });
 }
 
@@ -320,40 +360,54 @@ function loadTokens(fileName) {
 }
 
 async function startStravaAuth() {
-  const authWindow = new BrowserWindow({
-    width: 600,
-    height: 800,
-    webPreferences: { nodeIntegration: false },
-  });
+  return new Promise((resolve, reject) => {
+    const authWindow = new BrowserWindow({
+      width: 600,
+      height: 800,
+      webPreferences: { nodeIntegration: false },
+    });
 
-  const authUrl = `${STRAVA.authUrl}?client_id=${STRAVA.clientId}&response_type=code&redirect_uri=${STRAVA.redirectUri}&scope=${STRAVA.scope}&approval_prompt=force`;
-  authWindow.loadURL(authUrl);
+    const authUrl = `${STRAVA.authUrl}?client_id=${STRAVA.clientId}&response_type=code&redirect_uri=${STRAVA.redirectUri}&scope=${STRAVA.scope}&approval_prompt=force`;
+    authWindow.loadURL(authUrl);
 
-  authWindow.webContents.on("will-redirect", async (event, url) => {
-    if (url.startsWith(STRAVA.redirectUri)) {
-      event.preventDefault();
+    authWindow.webContents.on("will-redirect", async (event, url) => {
+      if (url.startsWith(STRAVA.redirectUri)) {
+        event.preventDefault();
 
-      const codeMatch = url.match(/code=([\w\d]+)/);
-      if (codeMatch) {
-        const code = codeMatch[1];
+        const codeMatch = url.match(/code=([\w\d]+)/);
+        if (codeMatch) {
+          const code = codeMatch[1];
+          try {
+            const res = await fetch(STRAVA.tokenUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                client_id: STRAVA.clientId,
+                client_secret: STRAVA.clientSecret,
+                code,
+                grant_type: "authorization_code",
+              }),
+            });
+            if (!res.ok)
+              throw new Error(`Strava token exchange failed: ${res.status}`);
+            const tokens = await res.json();
+            tokens.acquired_at = Date.now();
 
-        const res = await fetch(STRAVA.tokenUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            client_id: STRAVA.clientId,
-            client_secret: STRAVA.clientSecret,
-            code,
-            grant_type: "authorization_code",
-          }),
-        });
-        const tokens = await res.json();
-        tokens.acquired_at = Date.now();
-
-        fs.writeFileSync("strava_tokens.json", JSON.stringify(tokens, null, 2));
-        authWindow.close();
+            fs.writeFileSync(
+              "strava_tokens.json",
+              JSON.stringify(tokens, null, 2),
+            );
+            authWindow.close();
+            resolve(tokens);
+          } catch (err) {
+            reject(err);
+          }
+        }
       }
-    }
+    });
+    authWindow.on("closed", () => {
+      reject(new Error("Strava auth window closed by user"));
+    });
   });
 }
 

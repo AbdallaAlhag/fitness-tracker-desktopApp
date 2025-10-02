@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld("fitbitAPI", {
   getFitbitDailyActivity: () => ipcRenderer.invoke("fitbit-get-daily-activity"),
   getFitbitWeeklyActivity: () =>
     ipcRenderer.invoke("fitbit-get-weekly-activity"),
+  getFitbitWeight: () => ipcRenderer.invoke("fitbit-get-weight"),
 });
 
 contextBridge.exposeInMainWorld("stravaAPI", {
