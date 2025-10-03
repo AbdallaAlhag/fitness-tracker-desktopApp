@@ -127,7 +127,7 @@ window.stravaAPI.getStravaActivity().then((data) => {
   const paceSec = Math.round((60 / mph - paceMin) * 60);
   let totalTime = formatTime(activity.moving_time);
   let calories = (9.3 * weight * (activity.moving_time / 3600)).toFixed(0);
-  if (calories === Nan) {
+  if (calories === NaN) {
     calories = "N/A";
   }
   console.log("calories", calories);

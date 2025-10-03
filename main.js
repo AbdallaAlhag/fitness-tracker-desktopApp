@@ -29,15 +29,15 @@ const STRAVA = {
 
 const createWindow = async () => {
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 330,
+    height: 500,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
   });
   win.loadFile("index.html");
   Menu.setApplicationMenu(null);
-  win.webContents.openDevTools();
+  // win.webContents.openDevTools();
 };
 
 // Both start up at the same time
@@ -295,7 +295,7 @@ async function startFitbitAuth() {
     });
 
     const authUrl = `https://www.fitbit.com/oauth2/authorize?${params.toString()}`;
-    let authWin = new BrowserWindow({ width: 500, height: 600 });
+    let authWin = new BrowserWindow({ width: 330, height: 500 });
     authWin.loadURL(authUrl);
 
     // Catch redirect
@@ -377,8 +377,8 @@ function loadTokens(fileName) {
 async function startStravaAuth() {
   return new Promise((resolve, reject) => {
     const authWindow = new BrowserWindow({
-      width: 600,
-      height: 800,
+      width: 330,
+      height: 500,
       webPreferences: { nodeIntegration: false },
     });
 

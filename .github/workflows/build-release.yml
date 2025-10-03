@@ -4,7 +4,7 @@ name: Build and Publish Electron App
 on:
   push:
     tags:
-      - 'v*.*.*'  # trigger only on version tags like v1.0.0
+      - 'v*.*.*'  # trigger on version tags like v1.1.0
 
 jobs:
   build:
@@ -14,9 +14,10 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Use Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
@@ -24,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Make Electron app
+      - name: Build Electron app
         run: npm run make
 
       - name: Upload artifacts
@@ -32,15 +33,45 @@ jobs:
         with:
           name: electron-artifacts-${{ matrix.os }}
           path: out/make/
-          
+
   publish:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Upload to GitHub Releases
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Download artifacts from all OS builds
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: electron-artifacts-ubuntu-latest
+          path: out/make/ubuntu
+
+      - name: Download Windows artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: electron-artifacts-windows-latest
+          path: out/make/windows
+
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: electron-artifacts-macos-latest
+          path: out/make/macos
+
+      # Upload all artifacts to GitHub release
+      - name: Publish release
         uses: softprops/action-gh-release@v1
         with:
-          files: out/make/**/*  # upload all platform builds
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: |
+            out/make/ubuntu/**/* 
+            out/make/windows/**/* 
+            out/make/macos/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
