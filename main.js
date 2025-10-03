@@ -4,6 +4,11 @@ require("dotenv").config();
 const crypto = require("crypto");
 const fs = require("fs");
 
+require("update-electron-app")({
+  repo: "AbdallaAlhag/fitness-tracker-desktopApp",
+  updateInterval: "1 hour",
+});
+
 const FITBIT_CLIENT_ID = process.env.FITBIT_CLIENT_ID;
 // const CLIENT_SECRET = process.env.CLIENT_SECRET;
 const FITBIT_REDIRECT_URI = process.env.FITBIT_REDIRECT_URI;
@@ -69,7 +74,7 @@ const handleTokens = async () => {
 const createSplashWindow = () => {
   const splash = new BrowserWindow({
     width: 400,
-    height: 200,
+    height: 400,
     frame: false,
     alwaysOnTop: true,
   });
@@ -148,6 +153,7 @@ ipcMain.handle("fitbit-get-daily-activity", async () => {
 ipcMain.handle("fitbit-get-weight", async () => {
   try {
     const tokens = loadTokens("fitbit_tokens.json"); // your token management from earlier
+    if (!tokens) return null;
     const accessToken = tokens.access_token;
     const today = new Date().toISOString().split("T")[0]; // e.g. "2025-09-25"
 
@@ -194,6 +200,7 @@ async function fetchFitbitResource(resource, startDate, endDate, accessToken) {
 }
 ipcMain.handle("fitbit-get-weekly-activity", async () => {
   const tokens = loadTokens("fitbit_tokens.json"); // your token management from earlier
+  if (!tokens) return null;
   const accessToken = tokens.access_token;
   const today = new Date().toISOString().split("T")[0]; // e.g. "2025-09-25"
   const { monday: startDate, sunday: endDate } = getWeekRange(today);
@@ -418,6 +425,7 @@ async function startStravaAuth() {
 
 ipcMain.handle("strava-get-activity", async () => {
   const tokens = loadTokens("strava_tokens.json"); // your token management from earlier
+  if (!tokens) return null;
   const accessToken = tokens.access_token;
 
   /// Gives us daily timer period, don't use at the moment.

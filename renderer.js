@@ -29,6 +29,10 @@ func();
 const weightDiv = document.getElementById("weight");
 window.fitbitAPI.getFitbitWeight().then((data) => {
   // console.log("weight data: ", data.weight);
+  if (data == null) {
+    weightDiv.innerText = "Need Fitbit Authorzation to showcase weight";
+    return;
+  }
   if (!data) {
     weightDiv.innerHTML = `<b>Today's weight:<\b> No Data found`;
   }
@@ -42,6 +46,11 @@ const distanceDiv = document.getElementById("distance");
 const bmrDiv = document.getElementById("bmr");
 
 window.fitbitAPI.getFitbitDailyActivity().then((data) => {
+  if (data === null) {
+    stepsDiv.innerText =
+      "Need fitbit authorization to showcase steps, distance, weight, and BMR";
+    return;
+  }
   let steps = data.summary.steps;
   let distance = data.summary.distances[0].distance; //  total distance
   let bmr = data.summary.caloriesBMR;
@@ -71,6 +80,11 @@ let stravaActivity = document.getElementById("strava-activity");
 
 window.stravaAPI.getStravaActivity().then((data) => {
   console.log(data);
+  if (data === null) {
+    stravaActivity.innerHTML = `<b>Strava Activity</b>: 
+                                Need Strava Authorization!`;
+    return;
+  }
   // // let activity = data.at(-1);
   // let activity = data[0];
 
@@ -141,6 +155,11 @@ function formatDuration(ms) {
 const hevyActivity = document.getElementById("hevy-activity");
 
 window.hevyAPI.getHevyActivity().then((data) => {
+  if (data == null) {
+    hevyActivity.innerHTML = `<b>Hevy Activity</b>:
+                              Need Hevy Authorzation`;
+    return;
+  }
   console.log(data);
   let workout = data.workouts;
 
