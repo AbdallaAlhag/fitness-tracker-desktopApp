@@ -1,30 +1,7 @@
 {
   "token_type": "Bearer",
-  "expires_at": 1759441833,
-  "expires_in": 13151,
-  "refresh_token": "4146ab2feae7a41e12c4090814b381b77aa0660a",
-  "access_token": "fd5aaa21ce120e503f4651434f8b45ea8f322b25",
-  "athlete": {
-    "id": 92644281,
-    "username": "abdalla_alhag",
-    "resource_state": 2,
-    "firstname": "Abdalla",
-    "lastname": "Alhag",
-    "bio": null,
-    "city": null,
-    "state": null,
-    "country": null,
-    "sex": "M",
-    "premium": false,
-    "summit": false,
-    "created_at": "2021-09-18T13:38:15Z",
-    "updated_at": "2023-10-07T15:23:03Z",
-    "badge_type_id": 0,
-    "weight": 0,
-    "profile_medium": "https://lh3.googleusercontent.com/a/ACg8ocKmKQIVjwWY39IB4oT4NT0OQ9BHRFE62gLHbVU4Gi3ASU7S=s96-c",
-    "profile": "https://lh3.googleusercontent.com/a/ACg8ocKmKQIVjwWY39IB4oT4NT0OQ9BHRFE62gLHbVU4Gi3ASU7S=s96-c",
-    "friend": null,
-    "follower": null
-  },
-  "acquired_at": 1759428682899
+  "access_token": "db48f08838779690c67587aba62f38ebe6546b5c",
+  "expires_at": 1759534646,
+  "expires_in": 21600,
+  "refresh_token": "4146ab2feae7a41e12c4090814b381b77aa0660a"
 }

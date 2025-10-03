@@ -1,6 +1,6 @@
-const information = document.getElementById("info");
-information.innerText = `This app is using chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`;
-
+// const information = document.getElementById("info");
+// information.innerText = `This app is using chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`;
+//
 const now = new Date();
 
 let weight;
@@ -30,14 +30,14 @@ const weightDiv = document.getElementById("weight");
 window.fitbitAPI.getFitbitWeight().then((data) => {
   // console.log("weight data: ", data.weight);
   if (data == null) {
-    weightDiv.innerText = "Need Fitbit Authorzation to showcase weight";
+    weightDiv.innerText = "Need Fitbit Auth";
     return;
   }
   if (!data) {
-    weightDiv.innerHTML = `<b>Today's weight:<\b> No Data found`;
+    weightDiv.innerText = `No Data found`;
   }
   weight = data.weight[0].weight; // kg! which is good for our equations but need to convert to lbs when displayed
-  weightDiv.innerHTML = `<b>Today's weight:</b> ${(weight * 2.20462).toFixed(1)}`;
+  weightDiv.innerText = (weight * 2.20462).toFixed(1);
 });
 
 // grabs steps
@@ -47,28 +47,29 @@ const bmrDiv = document.getElementById("bmr");
 
 window.fitbitAPI.getFitbitDailyActivity().then((data) => {
   if (data === null) {
-    stepsDiv.innerText =
-      "Need fitbit authorization to showcase steps, distance, weight, and BMR";
+    stepsDiv.innerText = "Need fitbit Auth";
+    distanceDiv.innerText = "Need fitbit Auth";
+    bmrDiv.innerText = "Need fitbit Auth";
     return;
   }
   let steps = data.summary.steps;
   let distance = data.summary.distances[0].distance; //  total distance
   let bmr = data.summary.caloriesBMR;
   if (steps !== null) {
-    stepsDiv.innerHTML = `<b>Today's Steps:</b> ${steps}`;
+    stepsDiv.innerText = steps;
   } else {
-    stepsDiv.innerHTML = ` <b>Today's Steps:</b> Failed to load steps.`;
+    stepsDiv.innerText = `Failed to load`;
   }
 
   if (distance !== null) {
-    distanceDiv.innerHTML = `<b>Today's distance:</b> ${distance.toFixed(2)} miles`;
+    distanceDiv.innerText = distance.toFixed(2);
   } else {
-    distanceDiv.innerHTML = `<b>Today's distance:</b> Failed to load distance.`;
+    distanceDiv.innerText = `Failed to load`;
   }
   if (bmr !== null) {
-    bmrDiv.innerHTML = `<b>Today's BMR:</b> ${bmr} cal`;
+    bmrDiv.innerText = bmr;
   } else {
-    bmrDiv.innerHTML = `<b>Today's BMR:</b> Failed to load BMR.`;
+    bmrDiv.innerText = `Failed to load`;
   }
 });
 
@@ -76,13 +77,12 @@ window.fitbitAPI.getFitbitWeeklyActivity().then((data) => {
   console.log(data);
 });
 
-let stravaActivity = document.getElementById("strava-activity");
+let stravaActivity = document.getElementById("strava");
 
 window.stravaAPI.getStravaActivity().then((data) => {
   console.log(data);
   if (data === null) {
-    stravaActivity.innerHTML = `<b>Strava Activity</b>: 
-                                Need Strava Authorization!`;
+    stravaActivity.innerText = `Need Strava Auth`;
     return;
   }
   // // let activity = data.at(-1);
@@ -107,13 +107,11 @@ window.stravaAPI.getStravaActivity().then((data) => {
   });
   console.log(activity);
   if (activity.length == 0) {
-    stravaActivity.innerHTML = `<b>Strava Activity</b>: 
-                                No Cardio Today!`;
+    stravaActivity.innerText = `No Cardio Today!`;
     return;
   }
   if (!activity) {
-    stravaActivity.innerHTML = `<b>Strava Activity</b>: 
-                                No Data Found!`;
+    stravaActivity.innerText = `No Data Found`;
     return;
   }
   // for now let's just set activity to be the first we can change this to a list of activities later.
@@ -129,12 +127,16 @@ window.stravaAPI.getStravaActivity().then((data) => {
   const paceSec = Math.round((60 / mph - paceMin) * 60);
   let totalTime = formatTime(activity.moving_time);
   let calories = (9.3 * weight * (activity.moving_time / 3600)).toFixed(0);
-  stravaActivity.innerText = `Strava Activity: ${name.toUpperCase()}
-    Date: ${new Date(date).toLocaleString()}
-    Distance: ${distance.toFixed(2)} mi
-    Pace: ${paceMin}:${paceSec}/mi
-    Time: ${totalTime}
-    Calories: ${calories}`;
+  if (calories === Nan) {
+    calories = "N/A";
+  }
+  console.log("calories", calories);
+  stravaActivity.innerText = `${name.toUpperCase()}
+    ${new Date(date).toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true })}
+    ${distance.toFixed(2)} mi
+    ${paceMin}:${paceSec}/mi
+    ${totalTime}
+    ${calories} cal`;
 });
 
 // epoch to minutes, hours, second
@@ -152,12 +154,11 @@ function formatDuration(ms) {
   const s = totalSeconds % 60;
   return `${h}h ${m}m ${s}s`;
 }
-const hevyActivity = document.getElementById("hevy-activity");
+const hevyActivity = document.getElementById("hevy");
 
 window.hevyAPI.getHevyActivity().then((data) => {
   if (data == null) {
-    hevyActivity.innerHTML = `<b>Hevy Activity</b>:
-                              Need Hevy Authorzation`;
+    hevyActivity.innerText = `Need Hevy Auth`;
     return;
   }
   console.log(data);
@@ -186,13 +187,11 @@ window.hevyAPI.getHevyActivity().then((data) => {
   //   (w) => new Date(w.created_at) >= startOfWeek,
   // );
   if (workoutsToday.length === 0) {
-    hevyActivity.innerHTML = `<b>Hevy Activity</b>:
-                              No workout Today`;
+    hevyActivity.innerText = `No Workout Today!`;
     return;
   }
   if (!workoutsToday) {
-    hevyActivity.innerHTML = `<b>Hevy Activity</b>:
-                              No Data Found`;
+    hevyActivity.innerText = `No Data Found`;
     return;
   }
   for (const w of workoutsToday) {
@@ -206,10 +205,10 @@ window.hevyAPI.getHevyActivity().then((data) => {
       200
     ).toFixed(0);
     hevyActivity.innerText += `
-                              Workout: ${title}
-                              Date: ${date}
-                              Duration: ${durationStr}
-                              Calories: ${calories}
+                             ${title}
+                              ${date}
+                              ${durationStr}
+                              ${calories}
                               `;
   }
 });

@@ -11,3 +11,6 @@ https://dev.fitbit.com/build/reference/web-api/
 Strava API links:  
 https://developers.strava.com/docs/getting-started/#basic  
 https://developers.strava.com/docs/reference/#api-Activities  
+
+
+

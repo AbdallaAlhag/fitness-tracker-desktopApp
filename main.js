@@ -4,10 +4,14 @@ require("dotenv").config();
 const crypto = require("crypto");
 const fs = require("fs");
 
-require("update-electron-app")({
-  repo: "AbdallaAlhag/fitness-tracker-desktopApp",
-  updateInterval: "1 hour",
-});
+async function setupUpdater() {
+  try {
+    // Simply import the module, it auto-initializes
+    await import("update-electron-app");
+  } catch (err) {
+    console.error("Failed to initialize auto-updater:", err);
+  }
+}
 
 const FITBIT_CLIENT_ID = process.env.FITBIT_CLIENT_ID;
 // const CLIENT_SECRET = process.env.CLIENT_SECRET;
@@ -83,6 +87,7 @@ const createSplashWindow = () => {
 };
 
 app.whenReady().then(async () => {
+  setupUpdater();
   const splash = createSplashWindow();
 
   ipcMain.handle("ping", () => "pong");
