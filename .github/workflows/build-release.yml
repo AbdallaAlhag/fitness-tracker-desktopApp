@@ -4,7 +4,7 @@ name: Build and Publish Electron App
 on:
   push:
     tags:
-      - 'v*.*.*'  # trigger on version tags like v1.1.0
+      - 'v*.*.*'  # trigger on version tags like v1.1.2
 
 jobs:
   build:
@@ -29,7 +29,7 @@ jobs:
         run: npm run make
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4   # <-- updated to v4
         with:
           name: electron-artifacts-${{ matrix.os }}
           path: out/make/
@@ -43,24 +43,24 @@ jobs:
 
       # Download artifacts from all OS builds
       - name: Download Linux artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: electron-artifacts-ubuntu-latest
           path: out/make/ubuntu
 
       - name: Download Windows artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: electron-artifacts-windows-latest
           path: out/make/windows
 
       - name: Download macOS artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: electron-artifacts-macos-latest
           path: out/make/macos
 
-      # Upload all artifacts to GitHub release
+      # Publish all artifacts to GitHub release
       - name: Publish release
         uses: softprops/action-gh-release@v1
         with:
@@ -69,8 +69,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            out/make/ubuntu/**/* 
-            out/make/windows/**/* 
+            out/make/ubuntu/**/*
+            out/make/windows/**/*
             out/make/macos/**/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

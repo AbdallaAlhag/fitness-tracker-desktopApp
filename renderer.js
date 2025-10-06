@@ -26,8 +26,16 @@ const func = async () => {
 
 func();
 
+const stepsDiv = document.getElementById("steps");
+const distanceDiv = document.getElementById("distance");
+const bmrDiv = document.getElementById("bmr");
+const hevyActivity = document.getElementById("hevy");
+let stravaActivity = document.getElementById("strava");
 const weightDiv = document.getElementById("weight");
-window.fitbitAPI.getFitbitWeight().then((data) => {
+
+const init = async () => {
+  // window.fitbitAPI.getFitbitWeight().then((data) => {
+  const data = await window.fitbitAPI.getFitbitWeight();
   // console.log("weight data: ", data.weight);
   if (data == null) {
     weightDiv.innerText = "Need Fitbit Auth";
@@ -36,16 +44,25 @@ window.fitbitAPI.getFitbitWeight().then((data) => {
   if (!data) {
     weightDiv.innerText = `No Data found`;
   }
-  weight = data.weight[0].weight; // kg! which is good for our equations but need to convert to lbs when displayed
-  weightDiv.innerText = (weight * 2.20462).toFixed(1);
-});
+  if (data) {
+    weight = data.weight[0].weight; // kg! which is good for our equations but need to convert to lbs when displayed
+    weightDiv.innerText = (weight * 2.20462).toFixed(1);
+  }
 
-// grabs steps
-const stepsDiv = document.getElementById("steps");
-const distanceDiv = document.getElementById("distance");
-const bmrDiv = document.getElementById("bmr");
+  if (!weight) {
+    weight = 80; // 175 lb conversion set as default.
+  }
 
-window.fitbitAPI.getFitbitDailyActivity().then((data) => {
+  await loadFitbitData();
+  await loadHevyActivity();
+  await loadStravaActivity();
+};
+
+init();
+
+// window.fitbitAPI.getFitbitDailyActivity().then((data) => {
+const loadFitbitData = async () => {
+  const data = await window.fitbitAPI.getFitbitDailyActivity();
   if (data === null) {
     stepsDiv.innerText = "Need fitbit Auth";
     distanceDiv.innerText = "Need fitbit Auth";
@@ -71,15 +88,17 @@ window.fitbitAPI.getFitbitDailyActivity().then((data) => {
   } else {
     bmrDiv.innerText = `Failed to load`;
   }
-});
 
-window.fitbitAPI.getFitbitWeeklyActivity().then((data) => {
-  console.log(data);
-});
+  // const weeklyData = await window.fitbitAPI.getFitbitWeeklyActivity();
+};
 
-let stravaActivity = document.getElementById("strava");
+// window.fitbitAPI.getFitbitWeeklyActivity().then((data) => {
+//   console.log(data);
+// });
 
-window.stravaAPI.getStravaActivity().then((data) => {
+// window.stravaAPI.getStravaActivity().then((data) => {
+const loadStravaActivity = async () => {
+  const data = await window.stravaAPI.getStravaActivity();
   console.log(data);
   if (data === null) {
     stravaActivity.innerText = `Need Strava Auth`;
@@ -126,9 +145,13 @@ window.stravaAPI.getStravaActivity().then((data) => {
   const paceMin = Math.floor(60 / mph);
   const paceSec = Math.round((60 / mph - paceMin) * 60);
   let totalTime = formatTime(activity.moving_time);
-  let calories = (9.3 * weight * (activity.moving_time / 3600)).toFixed(0);
-  if (calories === NaN) {
+  let calories = 9.3 * weight * (activity.moving_time / 3600);
+  console.log("weight", weight);
+
+  if (isNaN(calories)) {
     calories = "N/A";
+  } else {
+    calories = calories.toFixed(0);
   }
   console.log("calories", calories);
   stravaActivity.innerText = `${name.toUpperCase()}
@@ -137,7 +160,7 @@ window.stravaAPI.getStravaActivity().then((data) => {
     ${paceMin}:${paceSec}/mi
     ${totalTime}
     ${calories} cal`;
-});
+};
 
 // epoch to minutes, hours, second
 function formatTime(seconds) {
@@ -154,9 +177,10 @@ function formatDuration(ms) {
   const s = totalSeconds % 60;
   return `${h}h ${m}m ${s}s`;
 }
-const hevyActivity = document.getElementById("hevy");
 
-window.hevyAPI.getHevyActivity().then((data) => {
+// window.hevyAPI.getHevyActivity().then((data) => {
+const loadHevyActivity = async () => {
+  const data = await window.hevyAPI.getHevyActivity();
   if (data == null) {
     hevyActivity.innerText = `Need Hevy Auth`;
     return;
@@ -211,4 +235,4 @@ window.hevyAPI.getHevyActivity().then((data) => {
                               ${calories}
                               `;
   }
-});
+};

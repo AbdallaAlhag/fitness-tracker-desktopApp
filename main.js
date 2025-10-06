@@ -1,8 +1,42 @@
 const { app, BrowserWindow, ipcMain, Menu } = require("electron");
 const path = require("node:path");
-require("dotenv").config();
+const dotenv = require("dotenv");
 const crypto = require("crypto");
 const fs = require("fs");
+
+// // Linux user config folder
+// const envPath = path.join(process.env.HOME, ".config", "FitTrack", ".env");
+//
+// if (fs.existsSync(envPath)) {
+//   dotenv.config({ path: envPath });
+//   console.log("Loaded env from:", envPath);
+// } else {
+//   console.warn("No .env found at", envPath);
+// }
+
+// dotenv.config({
+//   path: process.env.NODE_ENV === "production" ? ".env.prod" : ".env.dev",
+// });
+//
+// if (process.env.NODE_ENV !== "production") {
+//   app.setAsDefaultProtocolClient("myapp"); // register myapp://
+// }
+
+// 1️⃣ Load environment variables relative to the app folder
+const envFile =
+  process.env.NODE_ENV === "production" ? ".env.prod" : ".env.dev";
+dotenv.config({ path: path.join(__dirname, envFile) });
+
+// 2️⃣ Register custom protocol in **all environments**
+// Windows/macOS/Linux need it in production too for OAuth callbacks
+if (!app.isDefaultProtocolClient("myapp")) {
+  app.setAsDefaultProtocolClient("myapp");
+}
+
+app.on("ready", () => {
+  console.log("App running in", process.env.NODE_ENV, "mode");
+  console.log("Loaded env file:", envFile);
+});
 
 async function setupUpdater() {
   try {
@@ -14,7 +48,7 @@ async function setupUpdater() {
 }
 
 const FITBIT_CLIENT_ID = process.env.FITBIT_CLIENT_ID;
-// const CLIENT_SECRET = process.env.CLIENT_SECRET;
+console.log(FITBIT_CLIENT_ID);
 const FITBIT_REDIRECT_URI = process.env.FITBIT_REDIRECT_URI;
 const HEVY_API_KEY = process.env.HEVY_API_KEY;
 
@@ -27,6 +61,10 @@ const STRAVA = {
   scope: "read,activity:read_all",
 };
 
+console.log("environment: ", process.env.NODE_ENV);
+console.log("fitbit info: ", FITBIT_CLIENT_ID, FITBIT_CLIENT_ID);
+console.log(STRAVA);
+
 const createWindow = async () => {
   const win = new BrowserWindow({
     width: 330,
@@ -37,7 +75,7 @@ const createWindow = async () => {
   });
   win.loadFile("index.html");
   Menu.setApplicationMenu(null);
-  // win.webContents.openDevTools();
+  if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
 };
 
 // Both start up at the same time
@@ -295,7 +333,7 @@ async function startFitbitAuth() {
     });
 
     const authUrl = `https://www.fitbit.com/oauth2/authorize?${params.toString()}`;
-    let authWin = new BrowserWindow({ width: 330, height: 500 });
+    let authWin = new BrowserWindow({ width: 430, height: 500 });
     authWin.loadURL(authUrl);
 
     // Catch redirect
@@ -377,9 +415,8 @@ function loadTokens(fileName) {
 async function startStravaAuth() {
   return new Promise((resolve, reject) => {
     const authWindow = new BrowserWindow({
-      width: 330,
+      width: 430,
       height: 500,
-      webPreferences: { nodeIntegration: false },
     });
 
     const authUrl = `${STRAVA.authUrl}?client_id=${STRAVA.clientId}&response_type=code&redirect_uri=${STRAVA.redirectUri}&scope=${STRAVA.scope}&approval_prompt=force`;
@@ -407,11 +444,12 @@ async function startStravaAuth() {
               throw new Error(`Strava token exchange failed: ${res.status}`);
             const tokens = await res.json();
             tokens.acquired_at = Date.now();
-
-            fs.writeFileSync(
-              "strava_tokens.json",
-              JSON.stringify(tokens, null, 2),
-            );
+            //
+            // fs.writeFileSync(
+            //   "strava_tokens.json",
+            //   JSON.stringify(tokens, null, 2),
+            // );
+            saveTokens("strava_tokens.json", tokens);
             authWindow.close();
             resolve(tokens);
           } catch (err) {

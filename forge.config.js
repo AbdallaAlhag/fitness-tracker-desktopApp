@@ -23,7 +23,7 @@ module.exports = {
     {
       name: "@electron-forge/maker-squirrel",
       config: {
-        name: "fitness-tracker",
+        name: "FitTrack",
       },
     },
     {
@@ -42,7 +42,7 @@ module.exports = {
     {
       name: "@electron-forge/maker-squirrel",
       config: {
-        name: "fitness-tracker",
+        name: "FitTrack",
       },
     },
     {

@@ -1,9 +1,9 @@
 {
-  "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1RKV1AiLCJzdWIiOiI5SldGNVgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3YWN0IHd3ZWkiLCJleHAiOjE3NTk1NDE4NDYsImlhdCI6MTc1OTUxMzA0Nn0.emhTF6Ypk_DPYHfkPIykUviNzy-4rUVXK1hJ3mJFkBY",
+  "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1RKV1AiLCJzdWIiOiI5SldGNVgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3YWN0IHd3ZWkiLCJleHAiOjE3NTk3OTk2MzEsImlhdCI6MTc1OTc3MDgzMX0.umPEMVzYk4XFMZXFnZi77G4UMKB7emBCJDY50wkeQsU",
   "expires_in": 28800,
-  "refresh_token": "9e50aee8764dc3d3ea97968663b5e3f700b3334bdb3b27ead832492fad26baf0",
-  "scope": "activity weight",
+  "refresh_token": "ee62f5c929b64ab17e3feeddaad17f969bb468841c66c5b616b5c36b4c00cc9c",
+  "scope": "weight activity",
   "token_type": "Bearer",
   "user_id": "9JWF5X",
-  "acquired_at": 1759513046157
+  "acquired_at": 1759770831294
 }
