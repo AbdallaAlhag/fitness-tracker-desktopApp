@@ -17,7 +17,7 @@ const options = {
 
 const formattedDate = now.toLocaleString("en-US", options);
 const date = document.getElementById("date");
-date.innerHTML = `<b>Welcome! ${formattedDate}</b>`;
+date.innerHTML = `<b>${formattedDate}</b>`;
 
 const func = async () => {
   const response = await window.versions.ping();
@@ -59,6 +59,20 @@ const init = async () => {
 };
 
 init();
+
+let refreshButton = document.getElementById("refresh-btn");
+refreshButton.addEventListener("click", (e) => {
+  // Add spinning class
+  refreshButton.classList.add("spinning");
+
+  // Remove spinning class after animation completes
+  setTimeout(() => {
+    refreshButton.classList.remove("spinning");
+  }, 600);
+
+  init();
+  console.log("refreshed");
+});
 
 // window.fitbitAPI.getFitbitDailyActivity().then((data) => {
 const loadFitbitData = async () => {
@@ -236,3 +250,37 @@ const loadHevyActivity = async () => {
                               `;
   }
 };
+
+// ---------------MODAL---------------
+const infoBtn = document.getElementById("info-btn");
+const modalOverlay = document.getElementById("modal-overlay");
+const modalClose = document.getElementById("modal-close");
+const setWeightBtn = document.getElementById("set-weight-btn");
+const defaultWeightInput = document.getElementById("default-weight");
+
+// Open modal
+infoBtn.addEventListener("click", () => {
+  modalOverlay.classList.add("active");
+});
+
+// Close modal on close button
+modalClose.addEventListener("click", () => {
+  modalOverlay.classList.remove("active");
+});
+
+// Close modal on overlay click
+modalOverlay.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) {
+    modalOverlay.classList.remove("active");
+  }
+});
+
+// Set weight button
+setWeightBtn.addEventListener("click", () => {
+  const weight = defaultWeightInput.value;
+  if (weight) {
+    console.log("Default weight set to:", weight);
+    // You can add your logic here to save the weight
+    modalOverlay.classList.remove("active");
+  }
+});

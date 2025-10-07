@@ -101,7 +101,19 @@
         background: #1a1a1a;
         color: #e5e5e5;
       }
+      .header-btn.spinning {
+        animation: spin 0.6s ease-in-out;
+        pointer-events: none;
+      }
 
+      @keyframes spin {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
       .main-container {
         display: flex;
         gap: 12px;
@@ -201,6 +213,125 @@
         white-space: pre-line;
         word-wrap: break-word;
       }
+      /* Added modal styles */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal {
+        background: #111111;
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        width: 280px;
+        padding: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
+
+      .modal-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #ffffff;
+      }
+
+      .modal-close {
+        background: transparent;
+        border: none;
+        color: #666;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: color 0.2s;
+      }
+
+      .modal-close:hover {
+        color: #e5e5e5;
+      }
+
+      .modal-content {
+        margin-bottom: 16px;
+      }
+
+      .modal-text {
+        font-size: 13px;
+        color: #888;
+        line-height: 1.5;
+        margin-bottom: 16px;
+      }
+
+      .modal-input-group {
+        margin-bottom: 16px;
+      }
+
+      .modal-label {
+        font-size: 11px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: block;
+        font-weight: 500;
+      }
+
+      .modal-input {
+        width: 100%;
+        background: #0a0a0a;
+        border: 1px solid #1a1a1a;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: #e5e5e5;
+        font-family: inherit;
+        transition: border-color 0.2s;
+      }
+
+      .modal-input:focus {
+        outline: none;
+        border-color: #2a2a2a;
+      }
+
+      .modal-button {
+        width: 100%;
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+        border-radius: 6px;
+        padding: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #e5e5e5;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+
+      .modal-button:hover {
+        background: #2a2a2a;
+        border-color: #3a3a3a;
+      }
     </style>
   </head>
   <body>
@@ -263,6 +394,31 @@
           <div class="activity">
             <div class="activity-label">Hevy</div>
             <div class="activity-value" id="hevy">--</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-overlay" id="modal-overlay">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Settings</h2>
+            <button class="modal-close" id="modal-close">×</button>
+          </div>
+          <div class="modal-content">
+            <p class="modal-text">
+              Configure your default weight for BMR calculations and tracking.
+            </p>
+            <div class="modal-input-group">
+              <label class="modal-label" for="default-weight"
+                >Default Weight (lbs)</label
+              >
+              <input
+                type="number"
+                class="modal-input"
+                id="default-weight"
+                placeholder="Enter weight"
+              />
+            </div>
+            <button class="modal-button" id="set-weight-btn">Set Weight</button>
           </div>
         </div>
       </div>
