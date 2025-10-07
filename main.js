@@ -67,7 +67,7 @@ app.setAppUserModelId("com.yourname.fitnesstracker");
 const createWindow = async () => {
   const win = new BrowserWindow({
     width: 330,
-    height: 600,
+    height: 400,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },

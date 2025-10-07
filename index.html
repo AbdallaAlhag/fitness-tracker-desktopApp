@@ -1,36 +1,3 @@
-<!-- <!doctype html> -->
-<!-- <html> -->
-<!--   <head> -->
-<!--     <meta charset="UTF-8" /> -->
-<!--     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-<!--     <meta -->
-<!--       http-equiv="Content-Security-Policy" -->
-<!--       content="default-src 'self'; script-src 'self'" -->
-<!--     /> -->
-<!--     <title>FitTrack👋</title> -->
-<!--   </head> -->
-<!--   <body> -->
-<!--     <p id="date"></p> -->
-<!--     <p id="weight"></p> -->
-<!--     <p id="steps"></p> -->
-<!--     <p id="distance"></p> -->
-<!--     <p id="bmr"></p> -->
-<!--     <p> -->
-<!--       Calorie foruma for running: Total Calories Burned = MET x Weight (kg) x -->
-<!--       Duration (hours) -->
-<!--     </p> -->
-<!--     <p>(Mets = 9.3, Running, 6-6.3 mph (10 min/mile))</p> -->
-<!--     <p id="strava-activity"></p> -->
-<!--     <p> -->
-<!--       Calorie formula for weightlifting is: Total Calories Burned = Duration (in -->
-<!--       minutes) x (METs x 3.5 x weight in kg) / 200. -->
-<!--     </p> -->
-<!--     <p>(Mets = 4.5, weight = 81.193 kg)</p> -->
-<!--     <p id="hevy-activity"></p> -->
-<!--     <p id="info"></p> -->
-<!--   </body> -->
-<!--   <script src="./renderer.js"></script> -->
-<!-- </html> -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -54,12 +21,14 @@
         background: #0a0a0a;
         color: #e5e5e5;
         padding: 16px;
+        padding-bottom: 40px;
+        /* Changed width back to 320px */
         width: 320px;
         max-height: 100vh;
         overflow-y: auto;
         overflow-x: hidden;
       }
-      /* Added custom scrollbar styling to match dark theme */
+
       body::-webkit-scrollbar {
         width: 6px;
       }
@@ -76,10 +45,20 @@
       body::-webkit-scrollbar-thumb:hover {
         background: #3a3a3a;
       }
+
       .header {
+        /* Added flex layout for header with buttons */
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
         margin-bottom: 20px;
         padding-bottom: 12px;
         border-bottom: 1px solid #1a1a1a;
+      }
+
+      /* Added header-left container for title and date */
+      .header-left {
+        flex: 1;
       }
 
       .header h1 {
@@ -95,17 +74,53 @@
         font-weight: 400;
       }
 
+      /* Added header buttons styling */
+      .header-buttons {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .header-btn {
+        background: #111111;
+        border: 1px solid #1a1a1a;
+        border-radius: 6px;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: #666;
+        font-size: 14px;
+      }
+
+      .header-btn:hover {
+        border-color: #2a2a2a;
+        background: #1a1a1a;
+        color: #e5e5e5;
+      }
+
+      .main-container {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+
       .metrics {
         display: flex;
         flex-direction: column;
         gap: 12px;
+        /* Changed metrics width to half (140px) */
+        flex: 0 0 calc(50% - 6px);
       }
 
       .metric {
         background: #111111;
         border: 1px solid #1a1a1a;
         border-radius: 8px;
-        padding: 12px;
+        padding: 10px;
         transition: border-color 0.2s;
       }
 
@@ -114,7 +129,7 @@
       }
 
       .metric-label {
-        font-size: 11px;
+        font-size: 10px;
         color: #666;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -123,45 +138,45 @@
       }
 
       .metric-value {
-        font-size: 24px;
+        font-size: 20px;
         font-weight: 600;
         color: #ffffff;
         line-height: 1;
       }
 
       .metric-unit {
-        font-size: 14px;
+        font-size: 12px;
         color: #888;
-        margin-left: 4px;
+        margin-left: 2px;
       }
 
-      .divider {
-        height: 1px;
-        background: #1a1a1a;
-        margin: 16px 0;
+      .activity-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
 
       .section-title {
-        font-size: 11px;
+        font-size: 10px;
         color: #666;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 12px;
+        margin-bottom: 8px;
         font-weight: 500;
       }
 
-      .activity-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
+      .activity-section {
+        display: flex;
+        flex-direction: column;
         gap: 12px;
-        margin-bottom: 40px; /* Added bottom margin to ensure activity card borders are fully visible */
       }
 
       .activity {
         background: #111111;
         border: 1px solid #1a1a1a;
         border-radius: 8px;
-        padding: 12px;
+        padding: 10px;
         transition: border-color 0.2s;
       }
 
@@ -170,81 +185,85 @@
       }
 
       .activity-label {
-        font-size: 11px;
+        font-size: 10px;
         color: #666;
         margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
       }
 
       .activity-value {
-        font-size: 20px;
-        font-weight: 600;
-        color: #ffffff;
-      }
-
-      .activity-unit {
         font-size: 12px;
-        color: #888;
-        margin-left: 2px;
+        font-weight: 600;
+        color: #e5e5e5;
+        line-height: 1.6;
+        white-space: pre-line;
+        word-wrap: break-word;
       }
     </style>
   </head>
   <body>
     <div class="header">
-      <h1>FitTrack</h1>
-      <p class="date" id="date">Loading...</p>
-    </div>
-
-    <div class="metrics">
-      <div class="metric">
-        <div class="metric-label">Weight</div>
-        <div class="metric-value">
-          <span id="weight">--</span>
-          <span class="metric-unit">lbs</span>
-        </div>
+      <!-- Wrapped title and date in header-left -->
+      <div class="header-left">
+        <h1>FitTrack</h1>
+        <p class="date" id="date">Loading...</p>
       </div>
-
-      <div class="metric">
-        <div class="metric-label">Steps</div>
-        <div class="metric-value">
-          <span id="steps">--</span>
-        </div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">Distance</div>
-        <div class="metric-value">
-          <span id="distance">--</span>
-          <span class="metric-unit">mi</span>
-        </div>
-      </div>
-
-      <div class="metric">
-        <div class="metric-label">BMR</div>
-        <div class="metric-value">
-          <span id="bmr">--</span>
-          <span class="metric-unit">cal</span>
-        </div>
+      <!-- Added refresh and info buttons -->
+      <div class="header-buttons">
+        <button class="header-btn" id="refresh-btn" title="Refresh">↻</button>
+        <button class="header-btn" id="info-btn" title="Info">i</button>
       </div>
     </div>
 
-    <div class="divider"></div>
+    <div class="main-container">
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Weight</div>
+          <div class="metric-value">
+            <span id="weight">--</span>
+            <span class="metric-unit">lbs</span>
+          </div>
+        </div>
 
-    <div class="section-title">Activity</div>
+        <div class="metric">
+          <div class="metric-label">Steps</div>
+          <div class="metric-value">
+            <span id="steps">--</span>
+          </div>
+        </div>
 
-    <div class="activity-grid">
-      <div class="activity">
-        <div class="activity-label">Strava</div>
-        <div class="activity-value">
-          <span id="strava">--</span>
-          <span class="activity-unit"></span>
+        <div class="metric">
+          <div class="metric-label">Distance</div>
+          <div class="metric-value">
+            <span id="distance">--</span>
+            <span class="metric-unit">mi</span>
+          </div>
+        </div>
+
+        <div class="metric">
+          <div class="metric-label">BMR</div>
+          <div class="metric-value">
+            <span id="bmr">--</span>
+            <span class="metric-unit">cal</span>
+          </div>
         </div>
       </div>
 
-      <div class="activity">
-        <div class="activity-label">Hevy</div>
-        <div class="activity-value">
-          <span id="hevy">--</span>
-          <span class="activity-unit"></span>
+      <div class="activity-container">
+        <div class="section-title">Activity</div>
+
+        <div class="activity-section">
+          <div class="activity">
+            <div class="activity-label">Strava</div>
+            <div class="activity-value" id="strava">--</div>
+          </div>
+
+          <div class="activity">
+            <div class="activity-label">Hevy</div>
+            <div class="activity-value" id="hevy">--</div>
+          </div>
         </div>
       </div>
     </div>
