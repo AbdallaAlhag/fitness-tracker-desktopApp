@@ -75,7 +75,7 @@ const createWindow = async () => {
   });
   win.loadFile("index.html");
   Menu.setApplicationMenu(null);
-  if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
+  // if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
 };
 
 // Both start up at the same time
