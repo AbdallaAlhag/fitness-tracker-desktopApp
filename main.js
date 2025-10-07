@@ -3,7 +3,7 @@ const path = require("node:path");
 const dotenv = require("dotenv");
 const crypto = require("crypto");
 const fs = require("fs");
-
+const windowStateKeeper = require("electron-window-state");
 // // Linux user config folder
 // const envPath = path.join(process.env.HOME, ".config", "FitTrack", ".env");
 //
@@ -64,10 +64,24 @@ const STRAVA = {
 const userDataPath = app.getPath("userData");
 app.setAppUserModelId("com.yourname.fitnesstracker");
 
+app.setLoginItemSettings({
+  openAtLogin: true, // 👈 launch on startup
+  path: app.getPath("exe"), // use current app executable
+});
+
 const createWindow = async () => {
+  const mainWindowState = windowStateKeeper({
+    defaultWidth: 300,
+    defaultHeight: 400,
+  });
   const win = new BrowserWindow({
-    width: 330,
-    height: 400,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
+    title: "FitTrack",
+    frame: false,
+    transparent: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
@@ -76,6 +90,7 @@ const createWindow = async () => {
   win.loadFile("index.html");
   Menu.setApplicationMenu(null);
   // if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
+  mainWindowState.manage(win);
 };
 
 // Both start up at the same time
@@ -124,6 +139,14 @@ const createSplashWindow = () => {
   return splash;
 };
 
+// this allows me to reset my window state so i can adjust my app and visual see the change.
+function resetWindowState() {
+  const filePath = path.join(app.getPath("userData"), "window-state.json");
+  if (fs.existsSync(filePath)) {
+    fs.unlinkSync(filePath);
+    console.log("✅ Window state reset!");
+  }
+}
 app.whenReady().then(async () => {
   setupUpdater();
   const splash = createSplashWindow();
