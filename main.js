@@ -61,6 +61,9 @@ const STRAVA = {
   scope: "read,activity:read_all",
 };
 
+const userDataPath = app.getPath("userData");
+app.setAppUserModelId("com.yourname.fitnesstracker");
+
 const createWindow = async () => {
   const win = new BrowserWindow({
     width: 330,
@@ -68,6 +71,7 @@ const createWindow = async () => {
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
+    icon: path.join(__dirname, "assets", "icon.png"),
   });
   win.loadFile("index.html");
   Menu.setApplicationMenu(null);
@@ -397,12 +401,22 @@ async function refreshAccessToken(refreshToken, clientId) {
   return data; // contains new access_token, refresh_token, expires_in
 }
 function saveTokens(fileName, tokens) {
-  fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
+  if (process.env.NODE_ENV === "development") {
+    fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
+  } else {
+    const tokenPath = path.join(userDataPath, fileName);
+    fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
+  }
 }
 
 function loadTokens(fileName) {
   if (!fs.existsSync(fileName)) return null;
-  return JSON.parse(fs.readFileSync(fileName));
+
+  if (process.env.NODE_ENV === "development") {
+    return JSON.parse(fs.readFileSync(fileName));
+  }
+  const tokenPath = path.join(userDataPath, fileName);
+  return JSON.parse(fs.readFileSync(tokenPath));
 }
 
 async function startStravaAuth() {

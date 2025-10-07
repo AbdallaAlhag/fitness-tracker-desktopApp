@@ -17,6 +17,7 @@ module.exports = {
   ],
   packagerConfig: {
     asar: true,
+    icon: "assets/icon", // no extension — forge adds .ico/.icns/.png automatically
   },
   rebuildConfig: {},
   makers: [
@@ -24,19 +25,38 @@ module.exports = {
       name: "@electron-forge/maker-squirrel",
       config: {
         name: "FitTrack",
+        options: {
+          icon: "./assets/icon.png", // explicit for Linux .deb
+        },
       },
     },
     {
       name: "@electron-forge/maker-zip",
       platforms: ["darwin"],
+      config: {
+        name: "FitTrack",
+        options: {
+          icon: "./assets/icon.png", // explicit for Linux .deb
+        },
+      },
     },
     {
       name: "@electron-forge/maker-deb",
-      config: {},
+      config: {
+        name: "FitTrack",
+        options: {
+          icon: "./assets/icon.png", // explicit for Linux .deb
+        },
+      },
     },
     {
       name: "@electron-forge/maker-rpm",
-      config: {},
+      config: {
+        name: "FitTrack",
+        options: {
+          icon: "./assets/icon.png", // explicit for Linux .deb
+        },
+      },
     },
     // Windows
     {
