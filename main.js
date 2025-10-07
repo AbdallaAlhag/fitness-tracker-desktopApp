@@ -61,14 +61,10 @@ const STRAVA = {
   scope: "read,activity:read_all",
 };
 
-console.log("environment: ", process.env.NODE_ENV);
-console.log("fitbit info: ", FITBIT_CLIENT_ID, FITBIT_CLIENT_ID);
-console.log(STRAVA);
-
 const createWindow = async () => {
   const win = new BrowserWindow({
     width: 330,
-    height: 500,
+    height: 600,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },
@@ -213,10 +209,7 @@ ipcMain.handle("fitbit-get-weight", async () => {
       const errText = await res.text();
       throw new Error(`Fitbit API failed: ${res.status} - ${errText}`);
     }
-    if (!res.ok) {
-      const errText = await res.text();
-      throw new Error(`Fitbit API failed: ${res.status} - ${errText}`);
-    }
+
     const data = await res.json();
     return data;
   } catch (err) {

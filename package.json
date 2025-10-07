@@ -1,6 +1,6 @@
 {
   "name": "FitTrack",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "main": "main.js",
   "scripts": {
     "start": "NODE_ENV=development electron-forge start",
@@ -10,8 +10,24 @@
     "make": "NODE_ENV=production electron-forge make",
     "publish": "NODE_ENV=production electron-forge publish"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "fitness",
+    "workout",
+    "health",
+    "electron",
+    "desktop app",
+    "fitbit",
+    "strava",
+    "hevy",
+    "activity tracker",
+    "calorie tracker",
+    "pace calculator",
+    "cross-platform",
+    "fitness dashboard",
+    "fitness analytics",
+    "goal tracking"
+  ],
+  "author": "Abdalla Alhag",
   "license": "ISC",
   "description": "Fitness tracker that grabs information from Fitbit, Hevy, and Strava. Combines it into a single application.",
   "devDependencies": {
