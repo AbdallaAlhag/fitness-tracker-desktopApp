@@ -252,8 +252,6 @@ const loadHevyActivity = async () => {
 const infoBtn = document.getElementById("info-btn");
 const modalOverlay = document.getElementById("modal-overlay");
 const modalClose = document.getElementById("modal-close");
-// const setWeightBtn = document.getElementById("set-weight-btn");
-// const defaultWeightInput = document.getElementById("default-weight");
 
 // Open modal
 infoBtn.addEventListener("click", () => {
@@ -273,13 +271,3 @@ modalOverlay.addEventListener("click", (e) => {
 });
 const information = document.getElementById("app-info");
 information.innerText = `This app is using chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`;
-
-// Set weight button
-// setWeightBtn.addEventListener("click", () => {
-//   const weight = defaultWeightInput.value;
-//   if (weight) {
-//     console.log("Default weight set to:", weight);
-//     // You can add your logic here to save the weight
-//     modalOverlay.classList.remove("active");
-//   }
-// });
