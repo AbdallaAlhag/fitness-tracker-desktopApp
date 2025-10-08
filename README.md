@@ -18,35 +18,35 @@ Fitbit and Strava have a public api while Hevy is only available to Hevy Pros us
 
 ## Screenshots
 
-![Main Dashboard](readMeAssets/screenshot1.png)
+![Main Dashboard](readMeAssets/Screenshot1.png)
 
-![Info Modal](readMeAssets/screenshot2.png)
+![Info Modal](readMeAssets/Screenshot2.png)
 
-![Loading Screen](readMeAssets/screenshot3.png)
+![Loading Screen](readMeAssets/Screenshot3.png)
 
 
 
 ## Usage/Examples
 
-    1. Launch the app
+  1. Launch the app
 
-    2. Connect each service (Fitbit, Hevy, Strava) via OAuth
+  2. Connect each service (Fitbit, Hevy, Strava) via OAuth
 
-    3. Authorize scopes needed (activity, steps, etc.)
+  3. Authorize scopes needed (activity, steps, etc.)
 
-    4. The app fetches and displays aggregated fitness data
+  4. The app fetches and displays aggregated fitness data
 
-    5. Refresh or periodically sync to update stats
+  5. Refresh or periodically sync to update stats
 
 ## Installation for users
 
-    Click on the Releases on this page under the About Section or click this link: https://github.com/AbdallaAlhag/fitness-tracker-desktopApp/releases 
+  Click on the Releases on this page under the About Section or click this link: https://github.com/AbdallaAlhag/fitness-tracker-desktopApp/releases 
 
-    Then open up the Assets of the latest version and install the .deb file (debian-based linux os like ubuntu, kali linux, and linux mint) or the .rpm file (red-hat based linux distro like Fedora, CentOS, etc...)
+  Then open up the Assets of the latest version and install the .deb file (debian-based linux os like ubuntu, kali linux, and linux mint) or the .rpm file (red-hat based linux distro like Fedora, CentOS, etc...)
 
-    Authorize Strava and Fitbit authentication and you should be good to go.
+  Authorize Strava and Fitbit authentication and you should be good to go.
 
-    Window and macos version come soon (maybe lol)
+  Window and macos version come soon (maybe lol)
 
 ## Installation for developers
 
@@ -72,7 +72,7 @@ Set up An API account with Strava, Fitbit, And Hevy
 To run this project, you will need to add the following environment variables to your .env file.
 
 I have a development and production .env.
-Redirect uri in production is "myapp://auth/callback" while development it is "http://localhost:3000/callback"
+Redirect uri in production is "myapp://auth/callback" while development it is "http://localhost:3000/callback" 
 
 Configure Forge.config.js to ensure build settings are correct and check package.json for running scripts like start, make, and publish.
 
