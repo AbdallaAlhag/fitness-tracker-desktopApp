@@ -62,13 +62,13 @@ const STRAVA = {
 };
 
 const userDataPath = app.getPath("userData");
+console.log(userDataPath);
 app.setAppUserModelId("com.yourname.fitnesstracker");
 
 app.setLoginItemSettings({
   openAtLogin: true, // 👈 launch on startup
   path: app.getPath("exe"), // use current app executable
 });
-
 const createWindow = async () => {
   const mainWindowState = windowStateKeeper({
     defaultWidth: 300,
@@ -424,21 +424,23 @@ async function refreshAccessToken(refreshToken, clientId) {
   return data; // contains new access_token, refresh_token, expires_in
 }
 function saveTokens(fileName, tokens) {
+  const tokenPath = path.join(userDataPath, fileName);
   if (process.env.NODE_ENV === "development") {
-    fs.writeFileSync(fileName, JSON.stringify(tokens, null, 2));
+    fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
   } else {
-    const tokenPath = path.join(userDataPath, fileName);
+    console.log(tokenPath);
     fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
   }
 }
 
 function loadTokens(fileName) {
+  const tokenPath = path.join(userDataPath, fileName);
   if (!fs.existsSync(fileName)) return null;
 
   if (process.env.NODE_ENV === "development") {
     return JSON.parse(fs.readFileSync(fileName));
   }
-  const tokenPath = path.join(userDataPath, fileName);
+  console.log(tokenPath);
   return JSON.parse(fs.readFileSync(tokenPath));
 }
 
