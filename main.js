@@ -4,6 +4,8 @@ const dotenv = require("dotenv");
 const crypto = require("crypto");
 const fs = require("fs");
 const windowStateKeeper = require("electron-window-state");
+
+const http = require("http");
 // // Linux user config folder
 // const envPath = path.join(process.env.HOME, ".config", "FitTrack", ".env");
 //
@@ -22,11 +24,56 @@ const windowStateKeeper = require("electron-window-state");
 //   app.setAsDefaultProtocolClient("myapp"); // register myapp://
 // }
 
-// 1️⃣ Load environment variables relative to the app folder
-const envFile =
-  process.env.NODE_ENV === "production" ? ".env.prod" : ".env.dev";
-dotenv.config({ path: path.join(__dirname, envFile) });
+// Path to log file
+const logPath = path.join(app.getPath("userData"), "app.log");
 
+// Override console.log and console.error
+const logStream = fs.createWriteStream(logPath, { flags: "a" }); // 'a' = append
+
+console.log = (...args) => {
+  logStream.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
+  process.stdout.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
+};
+
+console.error = (...args) => {
+  logStream.write(`[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`);
+  process.stderr.write(
+    `[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`,
+  );
+};
+
+console.log("Logging initialized. Log file:", logPath);
+
+let envPath;
+let userDataPath;
+console.log(process.env.NODE_ENV);
+if (!process.env.NODE_ENV) {
+  process.env.NODE_ENV = "production";
+}
+// 1️⃣ Load environment variables relative to the app folder
+// const envFile =
+//   process.env.NODE_ENV === "production" ? ".env.prod" : ".env.dev";
+// dotenv.config({ path: path.join(__dirname, envFile) });
+if (process.env.NODE_ENV === "production") {
+  // Use userData folder for production (writable)
+  const prodEnvPath = path.join(app.getPath("userData"), ".env.prod");
+
+  // If it doesn't exist yet, copy from the template in ASAR
+  const templateEnvPath = path.join(__dirname, ".env.prod");
+  if (!fs.existsSync(prodEnvPath)) {
+    fs.copyFileSync(templateEnvPath, prodEnvPath);
+  }
+
+  userDataPath = app.getPath("userData");
+  envPath = prodEnvPath;
+} else {
+  // In development, just use the local dev file
+  envPath = path.join(__dirname, ".env.dev");
+  userDataPath = __dirname;
+}
+
+// Load environment variables
+dotenv.config({ path: envPath });
 // 2️⃣ Register custom protocol in **all environments**
 // Windows/macOS/Linux need it in production too for OAuth callbacks
 if (!app.isDefaultProtocolClient("myapp")) {
@@ -35,7 +82,7 @@ if (!app.isDefaultProtocolClient("myapp")) {
 
 app.on("ready", () => {
   console.log("App running in", process.env.NODE_ENV, "mode");
-  console.log("Loaded env file:", envFile);
+  console.log("Loaded env file:", envPath);
 });
 
 async function setupUpdater() {
@@ -61,8 +108,9 @@ const STRAVA = {
   scope: "read,activity:read_all",
 };
 
-const userDataPath = app.getPath("userData");
-console.log(userDataPath);
+console.log(STRAVA.redirectUri, FITBIT_REDIRECT_URI);
+
+console.log("User Data Path: ", userDataPath);
 app.setAppUserModelId("com.yourname.fitnesstracker");
 
 app.setLoginItemSettings({
@@ -99,6 +147,7 @@ const createWindow = async () => {
 const handleTokens = async () => {
   // Fitbit Auth and Refresh check.
   let fitbit_tokens = loadTokens("fitbit_tokens.json");
+  console.log("fitbit token: ", JSON.stringify(fitbit_tokens));
   if (
     fitbit_tokens &&
     Date.now() > fitbit_tokens.acquired_at + fitbit_tokens.expires_in * 1000
@@ -115,6 +164,7 @@ const handleTokens = async () => {
 
   // Strava Auth and Refresh check
   let strava_tokens = loadTokens("strava_tokens.json");
+  console.log("strava token: ", JSON.stringify(strava_tokens));
   const now = Math.floor(Date.now() / 1000);
   if (!strava_tokens) {
     // No tokens at all → start auth flow
@@ -148,6 +198,7 @@ function resetWindowState() {
   }
 }
 app.whenReady().then(async () => {
+  // resetWindowState();
   setupUpdater();
   const splash = createSplashWindow();
 
@@ -381,7 +432,8 @@ async function startFitbitAuth() {
       }
     });
     authWin.on("closed", () => {
-      if (!fs.existsSync("fitbit_tokens.json")) {
+      const tokenPath = path.join(userDataPath, "fitbit_tokens.json");
+      if (!fs.existsSync(tokenPath)) {
         reject(new Error("Auth window closed by user"));
       }
     });
@@ -425,22 +477,22 @@ async function refreshAccessToken(refreshToken, clientId) {
 }
 function saveTokens(fileName, tokens) {
   const tokenPath = path.join(userDataPath, fileName);
+  console.log(tokenPath);
   if (process.env.NODE_ENV === "development") {
     fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
   } else {
-    console.log(tokenPath);
     fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
   }
 }
 
 function loadTokens(fileName) {
   const tokenPath = path.join(userDataPath, fileName);
-  if (!fs.existsSync(fileName)) return null;
+  console.log("token json: ", tokenPath);
+  if (!fs.existsSync(tokenPath)) return null;
 
   if (process.env.NODE_ENV === "development") {
-    return JSON.parse(fs.readFileSync(fileName));
+    return JSON.parse(fs.readFileSync(tokenPath));
   }
-  console.log(tokenPath);
   return JSON.parse(fs.readFileSync(tokenPath));
 }
 
@@ -451,47 +503,97 @@ async function startStravaAuth() {
       height: 500,
     });
 
-    const authUrl = `${STRAVA.authUrl}?client_id=${STRAVA.clientId}&response_type=code&redirect_uri=${STRAVA.redirectUri}&scope=${STRAVA.scope}&approval_prompt=force`;
-    authWindow.loadURL(authUrl);
+    // const authUrl = `${STRAVA.authUrl}?client_id=${STRAVA.clientId}&response_type=code&redirect_uri=${STRAVA.redirectUri}&scope=${STRAVA.scope}&approval_prompt=force`;
+    // authWindow.loadURL(authUrl);
+    //
+    // authWindow.webContents.on("will-redirect", async (event, url) => {
+    //   if (url.startsWith(STRAVA.redirectUri)) {
+    //     event.preventDefault();
+    //
+    //     const codeMatch = url.match(/code=([\w\d]+)/);
+    //     if (codeMatch) {
+    //       const code = codeMatch[1];
+    //       try {
+    //         const res = await fetch(STRAVA.tokenUrl, {
+    //           method: "POST",
+    //           headers: { "Content-Type": "application/json" },
+    //           body: JSON.stringify({
+    //             client_id: STRAVA.clientId,
+    //             client_secret: STRAVA.clientSecret,
+    //             code,
+    //             grant_type: "authorization_code",
+    //           }),
+    //         });
+    //         if (!res.ok)
+    //           throw new Error(`Strava token exchange failed: ${res.status}`);
+    //         const tokens = await res.json();
+    //         tokens.acquired_at = Date.now();
+    //         //
+    //         // fs.writeFileSync(
+    //         //   "strava_tokens.json",
+    //         //   JSON.stringify(tokens, null, 2),
+    //         // );
+    //         saveTokens("strava_tokens.json", tokens);
+    //         authWindow.close();
+    //         resolve(tokens);
+    //       } catch (err) {
+    //         reject(err);
+    //       }
+    //     }
+    //   }
+    // });
+    // Always use localhost for desktop auth
+    const redirectUri = "http://localhost:3000/auth/callback";
+    const authUrl = `${STRAVA.authUrl}?client_id=${STRAVA.clientId}&response_type=code&redirect_uri=${encodeURIComponent(
+      redirectUri,
+    )}&scope=${STRAVA.scope}&approval_prompt=force`;
 
-    authWindow.webContents.on("will-redirect", async (event, url) => {
-      if (url.startsWith(STRAVA.redirectUri)) {
-        event.preventDefault();
+    // Start a temporary local server
+    const server = http.createServer(async (req, res) => {
+      if (req.url.startsWith("/auth/callback")) {
+        const url = new URL(req.url, "http://localhost:3000");
+        const code = url.searchParams.get("code");
 
-        const codeMatch = url.match(/code=([\w\d]+)/);
-        if (codeMatch) {
-          const code = codeMatch[1];
-          try {
-            const res = await fetch(STRAVA.tokenUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                client_id: STRAVA.clientId,
-                client_secret: STRAVA.clientSecret,
-                code,
-                grant_type: "authorization_code",
-              }),
-            });
-            if (!res.ok)
-              throw new Error(`Strava token exchange failed: ${res.status}`);
-            const tokens = await res.json();
-            tokens.acquired_at = Date.now();
-            //
-            // fs.writeFileSync(
-            //   "strava_tokens.json",
-            //   JSON.stringify(tokens, null, 2),
-            // );
-            saveTokens("strava_tokens.json", tokens);
-            authWindow.close();
-            resolve(tokens);
-          } catch (err) {
-            reject(err);
-          }
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(
+          "<h3>✅ Authorization complete! You can close this window.</h3>",
+        );
+
+        authWindow.close();
+        server.close();
+
+        try {
+          const res = await fetch(STRAVA.tokenUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              client_id: STRAVA.clientId,
+              client_secret: STRAVA.clientSecret,
+              code,
+              grant_type: "authorization_code",
+            }),
+          });
+
+          if (!res.ok)
+            throw new Error(`Strava token exchange failed: ${res.status}`);
+
+          const tokens = await res.json();
+          tokens.acquired_at = Date.now();
+          saveTokens("strava_tokens.json", tokens);
+          resolve(tokens);
+        } catch (err) {
+          reject(err);
         }
       }
     });
+
+    server.listen(3000, () => {
+      console.log("✅ Listening on http://localhost:3000 for Strava redirect");
+      authWindow.loadURL(authUrl);
+    });
     authWindow.on("closed", () => {
-      if (!fs.existsSync("strava_tokens.json")) {
+      const tokenPath = path.join(userDataPath, "strava_tokens.json");
+      if (!fs.existsSync(tokenPath)) {
         reject(new Error("Strava auth window closed by user"));
       }
     });

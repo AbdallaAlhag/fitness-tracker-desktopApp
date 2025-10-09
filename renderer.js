@@ -36,9 +36,8 @@ const init = async () => {
   // console.log("weight data: ", data.weight);
   if (data == null) {
     weightDiv.innerText = "Need Fitbit Auth";
-    return;
   }
-  if (!data) {
+  if (!data && data != null) {
     weightDiv.innerText = `No Data found`;
   }
   if (data) {
@@ -58,7 +57,7 @@ const init = async () => {
 init();
 
 let refreshButton = document.getElementById("refresh-btn");
-refreshButton.addEventListener("click", (e) => {
+refreshButton.addEventListener("click", () => {
   // Add spinning class
   refreshButton.classList.add("spinning");
 
