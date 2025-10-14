@@ -1,4 +1,11 @@
-const { app, BrowserWindow, ipcMain, Menu } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  Tray,
+  nativeImage,
+} = require("electron");
 const path = require("node:path");
 const dotenv = require("dotenv");
 const crypto = require("crypto");
@@ -28,25 +35,25 @@ const http = require("http");
 const logPath = path.join(app.getPath("userData"), "app.log");
 
 // Override console.log and console.error
-const logStream = fs.createWriteStream(logPath, { flags: "a" }); // 'a' = append
-
-console.log = (...args) => {
-  logStream.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
-  process.stdout.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
-};
-
-console.error = (...args) => {
-  logStream.write(`[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`);
-  process.stderr.write(
-    `[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`,
-  );
-};
-
-console.log("Logging initialized. Log file:", logPath);
-
+// const logStream = fs.createWriteStream(logPath, { flags: "a" }); // 'a' = append
+//
+// console.log = (...args) => {
+//   logStream.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
+//   process.stdout.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
+// };
+//
+// console.error = (...args) => {
+//   logStream.write(`[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`);
+//   process.stderr.write(
+//     `[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`,
+//   );
+// };
+//
+// console.log("Logging initialized. Log file:", logPath);
+//
 let envPath;
 let userDataPath;
-console.log(process.env.NODE_ENV);
+// console.log(process.env.NODE_ENV);
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = "production";
 }
@@ -81,8 +88,8 @@ if (!app.isDefaultProtocolClient("myapp")) {
 }
 
 app.on("ready", () => {
-  console.log("App running in", process.env.NODE_ENV, "mode");
-  console.log("Loaded env file:", envPath);
+  // console.log("App running in", process.env.NODE_ENV, "mode");
+  // console.log("Loaded env file:", envPath);
 });
 
 async function setupUpdater() {
@@ -95,7 +102,7 @@ async function setupUpdater() {
 }
 
 const FITBIT_CLIENT_ID = process.env.FITBIT_CLIENT_ID;
-console.log(FITBIT_CLIENT_ID);
+// console.log(FITBIT_CLIENT_ID);
 const FITBIT_REDIRECT_URI = process.env.FITBIT_REDIRECT_URI;
 const HEVY_API_KEY = process.env.HEVY_API_KEY;
 
@@ -108,27 +115,33 @@ const STRAVA = {
   scope: "read,activity:read_all",
 };
 
-console.log(STRAVA.redirectUri, FITBIT_REDIRECT_URI);
+// console.log(STRAVA.redirectUri, FITBIT_REDIRECT_URI);
 
-console.log("User Data Path: ", userDataPath);
+// console.log("User Data Path: ", userDataPath);
 app.setAppUserModelId("com.yourname.fitnesstracker");
 
 app.setLoginItemSettings({
   openAtLogin: true, // 👈 launch on startup
   path: app.getPath("exe"), // use current app executable
 });
+
+let tray = null;
+let win = null;
+
 const createWindow = async () => {
   const mainWindowState = windowStateKeeper({
     defaultWidth: 300,
     defaultHeight: 400,
   });
-  const win = new BrowserWindow({
+  win = new BrowserWindow({
     x: mainWindowState.x,
     y: mainWindowState.y,
     width: mainWindowState.width,
     height: mainWindowState.height,
     title: "FitTrack",
     frame: false,
+    skipTaskbar: true, // this should hide from taskbar (win/mac)
+    // show: false, // 👈 prevents showing at startup, not what we want
     transparent: true,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -136,6 +149,15 @@ const createWindow = async () => {
     icon: path.join(__dirname, "assets", "icon.png"),
   });
   win.loadFile("index.html");
+
+  // this is the only way i can hide taskbar on linux skipTaskbar was not working for my distro.
+  // win.once("ready-to-show", () => {
+  //   win.hide();
+  // });
+  win.on("close", (event) => {
+    event.preventDefault();
+    win.hide();
+  });
   Menu.setApplicationMenu(null);
   // if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
   mainWindowState.manage(win);
@@ -147,7 +169,7 @@ const createWindow = async () => {
 const handleTokens = async () => {
   // Fitbit Auth and Refresh check.
   let fitbit_tokens = loadTokens("fitbit_tokens.json");
-  console.log("fitbit token: ", JSON.stringify(fitbit_tokens));
+  // console.log("fitbit token: ", JSON.stringify(fitbit_tokens));
   if (
     fitbit_tokens &&
     Date.now() > fitbit_tokens.acquired_at + fitbit_tokens.expires_in * 1000
@@ -164,7 +186,7 @@ const handleTokens = async () => {
 
   // Strava Auth and Refresh check
   let strava_tokens = loadTokens("strava_tokens.json");
-  console.log("strava token: ", JSON.stringify(strava_tokens));
+  // console.log("strava token: ", JSON.stringify(strava_tokens));
   const now = Math.floor(Date.now() / 1000);
   if (!strava_tokens) {
     // No tokens at all → start auth flow
@@ -194,11 +216,37 @@ function resetWindowState() {
   const filePath = path.join(app.getPath("userData"), "window-state.json");
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);
-    console.log("✅ Window state reset!");
+    // console.log("✅ Window state reset!");
   }
 }
+
+function quitApp() {
+  if (tray) {
+    tray.destroy();
+    tray = null;
+  }
+
+  // Give system time to unregister tray icon before quit
+  setTimeout(() => app.exit(0), 200);
+}
+app.on("before-quit", quitApp);
+app.on("will-quit", quitApp);
+
+app.on("window-all-closed", () => {
+  if (tray) tray.destroy();
+  if (process.platform !== "darwin") app.quit();
+});
+
+// closing on macOS
+app.on("activate", () => {
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
+process.on("exit", () => {
+  if (tray) tray.destroy();
+});
+process.on("SIGINT", quitApp);
 app.whenReady().then(async () => {
-  // resetWindowState();
+  resetWindowState();
   setupUpdater();
   const splash = createSplashWindow();
 
@@ -211,18 +259,38 @@ app.whenReady().then(async () => {
     // return;
   }
   await createWindow();
+
+  const iconPath = path.join(userDataPath, "assets", "icon.png");
+  tray = new Tray(nativeImage.createFromPath(iconPath));
+
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "Open",
+      click: () => {
+        win.show();
+      },
+    },
+    {
+      label: "Quit",
+      click: () => {
+        app.isQuiting = true;
+        tray?.destroy();
+        app.quit();
+      },
+    },
+  ]);
+
+  tray.setToolTip("FitTrack");
+  tray.setContextMenu(contextMenu);
+
   splash.close();
   // closing on window and linux
-  app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") app.quit();
-  });
-
-  // closing on macOS
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  // Optional: toggle window when tray icon is clicked
+  tray.on("click", () => {
+    if (win.isVisible()) win.hide();
+    else win.show();
   });
 });
-
 ipcMain.handle("hevy-get-activity", async () => {
   try {
     const url = "https://api.hevyapp.com/v1/workouts?page=1&pageSize=5";
@@ -477,7 +545,7 @@ async function refreshAccessToken(refreshToken, clientId) {
 }
 function saveTokens(fileName, tokens) {
   const tokenPath = path.join(userDataPath, fileName);
-  console.log(tokenPath);
+  // console.log(tokenPath);
   if (process.env.NODE_ENV === "development") {
     fs.writeFileSync(tokenPath, JSON.stringify(tokens, null, 2));
   } else {
@@ -487,7 +555,7 @@ function saveTokens(fileName, tokens) {
 
 function loadTokens(fileName) {
   const tokenPath = path.join(userDataPath, fileName);
-  console.log("token json: ", tokenPath);
+  // console.log("token json: ", tokenPath);
   if (!fs.existsSync(tokenPath)) return null;
 
   if (process.env.NODE_ENV === "development") {

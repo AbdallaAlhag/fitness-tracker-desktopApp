@@ -1,9 +1,9 @@
 {
-  "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1RKV1AiLCJzdWIiOiI5SldGNVgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3YWN0IHd3ZWkiLCJleHAiOjE3NjAwNTYzMzQsImlhdCI6MTc2MDAyNzUzNH0.6sqR0_qXJrhfqRsyEkYBTYpR6TqlArylvFzvYOGhgkw",
+  "access_token": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIyM1RKV1AiLCJzdWIiOiI5SldGNVgiLCJpc3MiOiJGaXRiaXQiLCJ0eXAiOiJhY2Nlc3NfdG9rZW4iLCJzY29wZXMiOiJ3YWN0IHd3ZWkiLCJleHAiOjE3NjA0ODg0MjEsImlhdCI6MTc2MDQ1OTYyMX0.6l766W99h5h-adEn-nfip50p2n3GuS5OCb_rAsr_Vm4",
   "expires_in": 28800,
-  "refresh_token": "2f6f24f3ea19f6b8276a9ae5faf67b061478d1ccab6f0e0549e4f198aedee00e",
-  "scope": "weight activity",
+  "refresh_token": "c425a1f36db55c45fc028f01c9f331ab3ab6973857dfde53dbab4c98c9383d43",
+  "scope": "activity weight",
   "token_type": "Bearer",
   "user_id": "9JWF5X",
-  "acquired_at": 1760027534316
+  "acquired_at": 1760459621841
 }

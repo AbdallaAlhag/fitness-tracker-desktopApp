@@ -33,6 +33,7 @@ const weightDiv = document.getElementById("weight");
 const init = async () => {
   // window.fitbitAPI.getFitbitWeight().then((data) => {
   const data = await window.fitbitAPI.getFitbitWeight();
+  console.log(data);
   // console.log("weight data: ", data.weight);
   if (data == null) {
     weightDiv.innerText = "Need Fitbit Auth";
@@ -41,12 +42,12 @@ const init = async () => {
     weightDiv.innerText = `No Data found`;
   }
   if (data) {
-    weight = data.weight[0].weight; // kg! which is good for our equations but need to convert to lbs when displayed
+    weight = data.weight[0]?.weight ? data.weight[0].weight : 80; // kg! which is good for our equations but need to convert to lbs when displayed
     weightDiv.innerText = (weight * 2.20462).toFixed(1);
   }
 
   if (!weight) {
-    weight = 80; // 175 lb conversion set as default.
+    weight = 80; // 175 lb conversion set as default. although we don't really need this
   }
 
   await loadFitbitData();
@@ -74,9 +75,9 @@ refreshButton.addEventListener("click", () => {
 const loadFitbitData = async () => {
   const data = await window.fitbitAPI.getFitbitDailyActivity();
   if (data === null) {
-    stepsDiv.innerText = "Need fitbit Auth";
-    distanceDiv.innerText = "Need fitbit Auth";
-    bmrDiv.innerText = "Need fitbit Auth";
+    stepsDiv.innerText = "No fitbit Auth";
+    distanceDiv.innerText = "No fitbit Auth";
+    bmrDiv.innerText = "No fitbit Auth";
     return;
   }
   let steps = data.summary.steps;
@@ -111,7 +112,7 @@ const loadStravaActivity = async () => {
   const data = await window.stravaAPI.getStravaActivity();
   console.log(data);
   if (data === null) {
-    stravaActivity.innerText = `Need Strava Auth`;
+    stravaActivity.innerText = `No Strava Auth`;
     return;
   }
   // // let activity = data.at(-1);
@@ -136,7 +137,7 @@ const loadStravaActivity = async () => {
   });
   console.log(activity);
   if (activity.length == 0) {
-    stravaActivity.innerText = `No Cardio Today!`;
+    stravaActivity.innerText = `Rest Day`;
     return;
   }
   if (!activity) {
@@ -192,7 +193,7 @@ function formatDuration(ms) {
 const loadHevyActivity = async () => {
   const data = await window.hevyAPI.getHevyActivity();
   if (data == null) {
-    hevyActivity.innerText = `Need Hevy Auth`;
+    hevyActivity.innerText = `No Hevy Auth`;
     return;
   }
   console.log(data);
@@ -221,7 +222,7 @@ const loadHevyActivity = async () => {
   //   (w) => new Date(w.created_at) >= startOfWeek,
   // );
   if (workoutsToday.length === 0) {
-    hevyActivity.innerText = `No Workout Today!`;
+    hevyActivity.innerText = `Rest Day`;
     return;
   }
   if (!workoutsToday) {
