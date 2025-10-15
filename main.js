@@ -35,21 +35,21 @@ const http = require("http");
 const logPath = path.join(app.getPath("userData"), "app.log");
 
 // Override console.log and console.error
-// const logStream = fs.createWriteStream(logPath, { flags: "a" }); // 'a' = append
-//
-// console.log = (...args) => {
-//   logStream.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
-//   process.stdout.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
-// };
-//
-// console.error = (...args) => {
-//   logStream.write(`[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`);
-//   process.stderr.write(
-//     `[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`,
-//   );
-// };
-//
-// console.log("Logging initialized. Log file:", logPath);
+const logStream = fs.createWriteStream(logPath, { flags: "a" }); // 'a' = append
+
+console.log = (...args) => {
+  logStream.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
+  process.stdout.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
+};
+
+console.error = (...args) => {
+  logStream.write(`[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`);
+  process.stderr.write(
+    `[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`,
+  );
+};
+
+console.log("Logging initialized. Log file:", logPath);
 //
 let envPath;
 let userDataPath;
@@ -78,7 +78,7 @@ if (process.env.NODE_ENV === "production") {
   envPath = path.join(__dirname, ".env.dev");
   userDataPath = __dirname;
 }
-
+console.log("user path: ", userDataPath);
 // Load environment variables
 dotenv.config({ path: envPath });
 // 2️⃣ Register custom protocol in **all environments**
@@ -159,7 +159,8 @@ const createWindow = async () => {
     win.hide();
   });
   Menu.setApplicationMenu(null);
-  // if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
+  // if (process.env.NODE_ENV === "development")
+  win.webContents.openDevTools();
   mainWindowState.manage(win);
 };
 
@@ -246,7 +247,7 @@ process.on("exit", () => {
 });
 process.on("SIGINT", quitApp);
 app.whenReady().then(async () => {
-  resetWindowState();
+  // resetWindowState();
   setupUpdater();
   const splash = createSplashWindow();
 
@@ -260,7 +261,9 @@ app.whenReady().then(async () => {
   }
   await createWindow();
 
-  const iconPath = path.join(userDataPath, "assets", "icon.png");
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, "icon.png")
+    : path.join(userDataPath, "assets", "icon.png");
   tray = new Tray(nativeImage.createFromPath(iconPath));
 
   const contextMenu = Menu.buildFromTemplate([
@@ -294,7 +297,7 @@ app.whenReady().then(async () => {
 ipcMain.handle("hevy-get-activity", async () => {
   try {
     const url = "https://api.hevyapp.com/v1/workouts?page=1&pageSize=5";
-
+    console.log("hevy api key: ", HEVY_API_KEY);
     const res = await fetch(url, {
       method: "GET",
       headers: {

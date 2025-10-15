@@ -36,7 +36,7 @@ const init = async () => {
   console.log(data);
   // console.log("weight data: ", data.weight);
   if (data == null) {
-    weightDiv.innerText = "Need Fitbit Auth";
+    weightDiv.innerText = "Need Auth";
   }
   if (!data && data != null) {
     weightDiv.innerText = `No Data found`;
@@ -46,8 +46,9 @@ const init = async () => {
     weightDiv.innerText = (weight * 2.20462).toFixed(1);
   }
 
-  if (!weight) {
+  if (!weight || data === null) {
     weight = 80; // 175 lb conversion set as default. although we don't really need this
+    weightDiv.innerText = (weight * 2.20462).toFixed(1);
   }
 
   await loadFitbitData();
@@ -74,10 +75,11 @@ refreshButton.addEventListener("click", () => {
 // window.fitbitAPI.getFitbitDailyActivity().then((data) => {
 const loadFitbitData = async () => {
   const data = await window.fitbitAPI.getFitbitDailyActivity();
+  console.log("fitbit data", data);
   if (data === null) {
-    stepsDiv.innerText = "No fitbit Auth";
-    distanceDiv.innerText = "No fitbit Auth";
-    bmrDiv.innerText = "No fitbit Auth";
+    stepsDiv.innerText = "No Auth";
+    distanceDiv.innerText = "No Auth";
+    bmrDiv.innerText = "No Auth";
     return;
   }
   let steps = data.summary.steps;

@@ -18,6 +18,9 @@ module.exports = {
   packagerConfig: {
     asar: true,
     icon: "assets/icon", // no extension — forge adds .ico/.icns/.png automatically
+    extraResource: [
+      "assets/icon.png", // your tray icon file
+    ],
   },
   rebuildConfig: {},
   makers: [
