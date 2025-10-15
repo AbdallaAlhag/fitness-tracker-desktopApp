@@ -130,8 +130,8 @@ let win = null;
 
 const createWindow = async () => {
   const mainWindowState = windowStateKeeper({
-    defaultWidth: 300,
-    defaultHeight: 400,
+    defaultWidth: 200,
+    defaultHeight: 430,
   });
   win = new BrowserWindow({
     x: mainWindowState.x,
@@ -159,7 +159,7 @@ const createWindow = async () => {
     win.hide();
   });
   Menu.setApplicationMenu(null);
-  // if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
+  if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
   mainWindowState.manage(win);
 };
 
