@@ -151,15 +151,15 @@ const createWindow = async () => {
   win.loadFile("index.html");
 
   // this is the only way i can hide taskbar on linux skipTaskbar was not working for my distro.
-  // win.once("ready-to-show", () => {
-  //   win.hide();
-  // });
+  win.once("ready-to-show", () => {
+    win.hide();
+  });
   win.on("close", (event) => {
     event.preventDefault();
     win.hide();
   });
   Menu.setApplicationMenu(null);
-  if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
+  // if (process.env.NODE_ENV === "development") win.webContents.openDevTools();
   mainWindowState.manage(win);
 };
 
