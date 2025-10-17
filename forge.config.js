@@ -15,6 +15,9 @@ module.exports = {
       },
     },
   ],
+  files: [
+    "!**/*.env*", // excludes any .env files
+  ],
   packagerConfig: {
     asar: true,
     icon: "assets/icon", // no extension — forge adds .ico/.icns/.png automatically

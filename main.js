@@ -19,8 +19,7 @@ const http = require("http");
 // if (fs.existsSync(envPath)) {
 //   dotenv.config({ path: envPath });
 //   console.log("Loaded env from:", envPath);
-// } else {
-//   console.warn("No .env found at", envPath);
+// } else    console.warn("No .env found at", envPath);
 // }
 
 // dotenv.config({
@@ -32,24 +31,24 @@ const http = require("http");
 // }
 
 // Path to log file
-const logPath = path.join(app.getPath("userData"), "app.log");
-
-// Override console.log and console.error
-const logStream = fs.createWriteStream(logPath, { flags: "a" }); // 'a' = append
-
-console.log = (...args) => {
-  logStream.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
-  process.stdout.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
-};
-
-console.error = (...args) => {
-  logStream.write(`[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`);
-  process.stderr.write(
-    `[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`,
-  );
-};
-
-console.log("Logging initialized. Log file:", logPath);
+// const logPath = path.join(app.getPath("userData"), "app.log");
+//
+// // Override console.log and console.error
+// const logStream = fs.createWriteStream(logPath, { flags: "a" }); // 'a' = append
+//
+// console.log = (...args) => {
+//   logStream.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
+//   process.stdout.write(`[LOG ${new Date().toISOString()}] ${args.join(" ")}\n`);
+// };
+//
+// console.error = (...args) => {
+//   logStream.write(`[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`);
+//   process.stderr.write(
+//     `[ERROR ${new Date().toISOString()}] ${args.join(" ")}\n`,
+//   );
+// };
+//
+// console.log("Logging initialized. Log file:", logPath);
 //
 let envPath;
 let userDataPath;
@@ -78,7 +77,7 @@ if (process.env.NODE_ENV === "production") {
   envPath = path.join(__dirname, ".env.dev");
   userDataPath = __dirname;
 }
-console.log("user path: ", userDataPath);
+// console.log("user path: ", userDataPath);
 // Load environment variables
 dotenv.config({ path: envPath });
 // 2️⃣ Register custom protocol in **all environments**
@@ -160,7 +159,7 @@ const createWindow = async () => {
   });
   Menu.setApplicationMenu(null);
   // if (process.env.NODE_ENV === "development")
-  win.webContents.openDevTools();
+  // win.webContents.openDevTools();
   mainWindowState.manage(win);
 };
 
@@ -297,7 +296,7 @@ app.whenReady().then(async () => {
 ipcMain.handle("hevy-get-activity", async () => {
   try {
     const url = "https://api.hevyapp.com/v1/workouts?page=1&pageSize=5";
-    console.log("hevy api key: ", HEVY_API_KEY);
+    // console.log("hevy api key: ", HEVY_API_KEY);
     const res = await fetch(url, {
       method: "GET",
       headers: {
